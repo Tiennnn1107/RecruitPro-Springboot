@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/main-layout}">
+<head>
+    <title th:text="${fieldName + ' - J2PP'}">Ngành nghề - J2PP</title>
+</head>
+<body>
+<div layout:fragment="content" class="py-4">
+    <div class="container">
+        <!-- Page Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 class="section-title mb-0">
+                    <i class="fas fa-briefcase text-primary me-2"></i>
+                    <span th:text="${fieldName}">Ngành nghề</span>
+                </h2>
+                <p class="text-muted mt-1 mb-0">Danh sách việc làm trong ngành <strong th:text="${fieldName}"></strong></p>
+            </div>
+            <a href="/" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Quay lại
+            </a>
+        </div>
+
+        <!-- Search Box -->
+        <div class="search-box mb-4">
+            <div class="row g-3 align-items-end">
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">Tìm kiếm</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fas fa-search"></i></span>
+                        <input type="text" id="searchTitle" class="form-control"
+                               placeholder="Tên công việc, kỹ năng..." oninput="debouncedSearch()">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold">Địa điểm</label>
+                    <select id="searchLocation" class="form-select" onchange="debouncedSearch()">
+                        <option value="">-- Tất cả địa điểm --</option>
+                        <option value="TP. Hồ Chí Minh">TP. Hồ Chí Minh</option>
+                        <option value="Hà Nội">Hà Nội</option>
+                        <option value="Đà Nẵng">Đà Nẵng</option>
+                        <option value="Cần Thơ">Cần Thơ</option>
+                        <option value="Hải Phòng">Hải Phòng</option>
+                        <option value="Biên Hòa">Biên Hòa</option>
+                        <option value="Nha Trang">Nha Trang</option>
+                        <option value="Huế">Huế</option>
+                        <option value="Quy Nhơn">Quy Nhơn</option>
+                        <option value="Vũng Tàu">Vũng Tàu</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button onclick="performSearch()" class="btn btn-primary w-100">
+                        <i class="fas fa-search me-2"></i>Tìm kiếm
+                    </button>
+                </div>
+                <div class="col-md-2">
+                    <button onclick="resetSearch()" class="btn btn-outline-secondary w-100">
+                        <i class="fas fa-redo me-2"></i>Reset
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results -->
+        <div class="row g-4" id="jobs-list-container">
+            <div class="col-12 text-center py-5">
+                <div class="loading-state">
+                    <p class="text-muted">Đang tải việc làm...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<th:block layout:fragment="scripts">
+    <script th:src="@{/js/application.js}"></script>
+    <script th:inline="javascript">
+        const fieldId = /*[[${fieldId}]]*/ null;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadJobsByField(fieldId);
+        });
+
+        function loadJobsByField(fieldId) {
+            if (!fieldId) {
+                document.getElementById('jobs-list-container').innerHTML =
+                    '<div class="col-12 text-center py-5"><p class="text-danger">Không tìm thấy ngành nghề</p></div>';
+                return;
+            }
+            loadAllJobs('', '', fieldId);
+        }
+
+        function resetSearch() {
+            document.getElementById('searchTitle').value = '';
+            document.getElementById('searchLocation').value = '';
+            loadJobsByField(fieldId);
+        }
+    </script>
+</th:block>
+</body>
+</html>

@@ -1,0 +1,33 @@
+.sidebar {
+    min-height: calc(100vh - 56px);
+    background-color: white;
+    box-shadow: 2px 0 5px rgba(0,0,0,0.05);
+}
+
+.sidebar .nav-link {
+    color: #333;
+    padding: 1rem 1.5rem;
+    border-left: 4px solid transparent;
+}
+
+.sidebar .nav-link:hover {
+    background-color: #f8f9fa;
+    color: var(--primary-color);
+}
+
+.sidebar .nav-link.active {
+    background-color: #e9ecef;
+    border-left-color: var(--primary-color);
+    color: var(--primary-color);
+    font-weight: bold;
+}
+
+.dashboard-stat-card {
+    padding: 1.5rem;
+    border-radius: 10px;
+}
+
+.stat-icon {
+    font-size: 2rem;
+    opacity: 0.3;
+}

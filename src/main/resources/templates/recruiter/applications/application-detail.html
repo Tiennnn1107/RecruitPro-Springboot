@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/main-layout}">
+<head>
+    <title>Chi tiết ứng viên</title>
+    <link th:href="@{/css/dashboard.css}" rel="stylesheet">
+    <style>
+        .detail-card { border: none; box-shadow: 0 2px 12px rgba(0,0,0,0.08); border-radius: 12px; }
+        .avatar-lg { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; }
+        .section-title { font-size: 0.8rem; text-transform: uppercase; color: #64748b; font-weight: 600; letter-spacing: 0.5px; }
+        .info-row { display: flex; align-items: center; padding: 0.75rem 0; border-bottom: 1px solid #f1f5f9; }
+        .info-row:last-child { border-bottom: none; }
+        .info-row i { width: 24px; color: #64748b; margin-right: 1rem; }
+        .skill-badge { display: inline-block; padding: 0.4rem 0.8rem; background: #f1f5f9; border-radius: 20px; font-size: 0.8rem; margin: 0.25rem; color: #475569; }
+        .exp-item { background: #f8fafc; padding: 1rem; border-radius: 8px; margin-bottom: 0.75rem; }
+    </style>
+</head>
+<body>
+<div layout:fragment="content" class="py-4">
+    <div class="mb-4">
+        <a th:href="@{/recruiter/applications/pipeline}" class="text-decoration-none text-muted small">
+            <i class="fas fa-arrow-left me-1"></i> Quay lại Pipeline
+        </a>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-4">
+            <div class="card detail-card mb-4">
+                <div class="card-body text-center p-4">
+                    <img th:src="${application.candidateAvatarUrl != null ? application.candidateAvatarUrl : 'https://ui-avatars.com/api/?name=' + application.candidateName + '&size=100'}"
+                         class="avatar-lg mb-3" alt="Avatar">
+                    <h4 class="fw-bold mb-1" th:text="${application.candidateName}">Tên ứng viên</h4>
+                    <p class="text-muted mb-3" th:text="${application.candidateHeadline}">Chức danh</p>
+                    
+                    <span class="badge bg-warning text-dark" th:text="${application.status}">STATUS</span>
+                    
+                    <div class="text-start mt-4">
+                        <div class="info-row">
+                            <i class="fas fa-envelope"></i>
+                            <span th:text="${application.candidateEmail}">email@email.com</span>
+                        </div>
+                        <div class="info-row">
+                            <i class="fas fa-phone"></i>
+                            <span th:text="${application.candidatePhone}">SĐT</span>
+                        </div>
+                        <div class="info-row">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span th:text="${application.candidateAddress}">Địa chỉ</span>
+                        </div>
+                        <div class="info-row">
+                            <i class="fas fa-clock"></i>
+                            <span>Ứng tuyển: <span th:text="${#temporals.format(application.appliedAt, 'dd/MM/yyyy')}">Ngày</span></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card detail-card">
+                <div class="card-body p-4">
+                    <h6 class="section-title mb-3">Hành động</h6>
+                    
+                    <a th:href="${application.resumeUrl}" class="btn btn-outline-primary w-100 mb-2" target="_blank" th:if="${application.resumeUrl != null}">
+                        <i class="fas fa-file-pdf me-2"></i>Xem CV
+                    </a>
+                    
+                    <button class="btn btn-success w-100" onclick="openScheduleModal()">
+                        <i class="fas fa-calendar-plus me-2"></i>Lên lịch phỏng vấn
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-8">
+            <div class="card detail-card mb-4">
+                <div class="card-body p-4">
+                    <h6 class="section-title mb-3">Vị trí ứng tuyển</h6>
+                    <div class="info-row">
+                        <i class="fas fa-briefcase"></i>
+                        <span class="fw-medium" th:text="${application.jobTitle}">Tin tuyển dụng</span>
+                    </div>
+                    <div class="info-row">
+                        <i class="fas fa-building"></i>
+                        <span th:text="${application.companyName}">Công ty</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card detail-card mb-4" th:if="${not #lists.isEmpty(application.skills)}">
+                <div class="card-body p-4">
+                    <h6 class="section-title mb-3">Kỹ năng</h6>
+                    <div>
+                        <span th:each="skill : ${application.skills}" class="skill-badge" th:text="${skill.skillName}">Skill</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card detail-card mb-4" th:if="${not #lists.isEmpty(application.experiences)}">
+                <div class="card-body p-4">
+                    <h6 class="section-title mb-3">Kinh nghiệm làm việc</h6>
+                    <div th:each="exp : ${application.experiences}" class="exp-item">
+                        <div class="fw-bold" th:text="${exp.position}">Vị trí</div>
+                        <div class="text-muted" th:text="${exp.companyName}">Công ty</div>
+                        <div class="small text-secondary">
+                            <span th:text="${#temporals.format(exp.startDate, 'MM/yyyy')}">01/2020</span>
+                            -
+                            <span th:text="${exp.endDate != null ? #temporals.format(exp.endDate, 'MM/yyyy') : 'Hiện tại'}">Hiện tại</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card detail-card mb-4">
+                <div class="card-body p-4">
+                    <h6 class="section-title mb-3">Thư giới thiệu</h6>
+                    <p class="mb-0 text-secondary" th:text="${application.coverLetter}">Cover letter...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="scheduleInterviewModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-light border-bottom-0">
+                <h5 class="modal-title fw-bold text-primary"><i class="fas fa-calendar-plus me-2"></i>Lên lịch phỏng vấn</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="scheduleInterviewForm">
+                <div class="modal-body">
+                    <input type="hidden" id="interviewApplicationId" th:value="${application.id}">
+                    <div class="mb-3">
+                        <label class="form-label fw-medium text-secondary">Thời gian phỏng vấn</label>
+                        <input type="datetime-local" id="interviewDateTime" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-medium text-secondary">Hình thức</label>
+                        <select id="interviewType" class="form-select" required>
+                            <option value="ONSITE">Trực tiếp tại văn phòng</option>
+                            <option value="ONLINE">Online (Google Meet/Zoom)</option>
+                            <option value="PHONE">Gọi điện thoại</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-medium text-secondary">Địa điểm / Link</label>
+                        <input type="text" id="interviewLocation" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-medium text-secondary">Ghi chú</label>
+                        <textarea id="interviewNote" class="form-control" rows="2"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light border-top-0">
+                    <button type="button" class="btn btn-light border" data-bs-dismiss="modal">Đóng</button>
+                    <button type="button" class="btn btn-primary" onclick="submitInterview()">Lưu</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<th:block layout:fragment="scripts">
+<script th:inline="javascript">
+function openScheduleModal() {
+    new bootstrap.Modal(document.getElementById('scheduleInterviewModal')).show();
+}
+
+async function submitInterview() {
+    const data = {
+        applicationId: document.getElementById('interviewApplicationId').value,
+        scheduledAt: document.getElementById('interviewDateTime').value,
+        type: document.getElementById('interviewType').value,
+        locationOrLink: document.getElementById('interviewLocation').value,
+        interviewerNote: document.getElementById('interviewNote').value
+    };
+    
+    try {
+        const res = await fetch('/api/interviews', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + localStorage.getItem('jwt_token') },
+            body: JSON.stringify(data)
+        });
+        
+        if (res.ok) {
+            alert('Lên lịch thành công!');
+            bootstrap.Modal.getInstance(document.getElementById('scheduleInterviewModal')).hide();
+        } else {
+            alert('Lỗi khi lên lịch');
+        }
+    } catch (e) {
+        alert('Có lỗi xảy ra');
+    }
+}
+</script>
+</th:block>
+</body>
+</html>

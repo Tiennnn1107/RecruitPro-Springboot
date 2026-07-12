@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/main-layout}">
+<head>
+    <title>Job Alerts - J2PP</title>
+</head>
+<body>
+<div layout:fragment="content" class="py-4">
+    <div class="container">
+        <!-- Page Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 class="section-title mb-0">
+                    <i class="fas fa-bell text-info me-2"></i>Job Alerts
+                </h2>
+                <p class="text-muted mt-1 mb-0">Nhận thông báo khi có việc làm phù hợp</p>
+            </div>
+            <button class="btn btn-primary" onclick="openCreateAlertModal()">
+                <i class="fas fa-plus me-2"></i>Thêm Alert mới
+            </button>
+        </div>
+
+        <!-- Alerts List -->
+        <div class="row g-4" id="alerts-container">
+            <div class="col-12 text-center py-5">
+                <div class="loading-state">
+                    <p class="text-muted">Đang tải...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Create Alert Modal -->
+<div class="modal fade" id="createAlertModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-bell me-2 text-info"></i>Tạo Job Alert mới
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="createAlertForm">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Từ khóa</label>
+                        <input type="text" class="form-control" id="alertKeywords"
+                               placeholder="VD: Java, Frontend, Python...">
+                        <small class="text-muted">Tìm việc theo tên công việc hoặc kỹ năng</small>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Địa điểm</label>
+                        <select class="form-select" id="alertLocation">
+                            <option value="">-- Tất cả địa điểm --</option>
+                            <option value="TP. Hồ Chí Minh">TP. Hồ Chí Minh</option>
+                            <option value="Hà Nội">Hà Nội</option>
+                            <option value="Đà Nẵng">Đà Nẵng</option>
+                            <option value="Cần Thơ">Cần Thơ</option>
+                            <option value="Hải Phòng">Hải Phòng</option>
+                            <option value="Biên Hòa">Biên Hòa</option>
+                            <option value="Nha Trang">Nha Trang</option>
+                            <option value="Huế">Huế</option>
+                            <option value="Quy Nhơn">Quy Nhơn</option>
+                            <option value="Vũng Tàu">Vũng Tàu</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Ngành nghề</label>
+                        <select class="form-select" id="alertField">
+                            <option value="">-- Tất cả ngành --</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Lương tối thiểu (VND)</label>
+                        <input type="number" class="form-control" id="alertMinSalary"
+                               placeholder="VD: 10000000">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-bell me-2"></i>Tạo Alert
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<th:block layout:fragment="scripts">
+    <script th:src="@{/js/application.js}"></script>
+    <script>
+        let alerts = [];
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadAlerts();
+            loadJobFieldsForSelect();
+
+            document.getElementById('createAlertForm').addEventListener('submit', createAlert);
+        });
+
+        async function loadJobFieldsForSelect() {
+            try {
+                const response = await fetch('/api/job-fields');
+                if (response.ok) {
+                    const fields = await response.json();
+                    const select = document.getElementById('alertField');
+                    fields.forEach(field => {
+                        const option = document.createElement('option');
+                        option.value = field.id;
+                        option.textContent = field.name;
+                        select.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error('Error loading job fields:', error);
+            }
+        }
+
+        async function loadAlerts() {
+            const container = document.getElementById('alerts-container');
+
+            try {
+                const response = await fetchWithAuth('/api/job-alerts');
+                if (!response.ok) throw new Error('Failed to load');
+
+                alerts = await response.json();
+
+                if (alerts.length === 0) {
+                    container.innerHTML = `
+                        <div class="col-12 text-center py-5">
+                            <i class="fas fa-bell-slash fa-4x text-muted opacity-50 mb-3"></i>
+                            <h5 class="text-muted">Chưa có alert nào</h5>
+                            <p class="text-muted">Tạo alert để nhận thông báo khi có việc làm phù hợp</p>
+                            <button onclick="openCreateAlertModal()" class="btn btn-primary mt-2">
+                                <i class="fas fa-plus me-2"></i>Tạo Alert đầu tiên
+                            </button>
+                        </div>`;
+                    return;
+                }
+
+                container.innerHTML = alerts.map(alert => `
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card border-0 shadow-sm h-100">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                    <div>
+                                        <span class="badge ${alert.isActive ? 'bg-success' : 'bg-secondary'} mb-2">
+                                            ${alert.isActive ? 'Đang hoạt động' : 'Tạm dừng'}
+                                        </span>
+                                        <h5 class="mb-1">${alert.keywords || 'Tất cả công việc'}</h5>
+                                    </div>
+                                    <div class="btn-group">
+                                        <button onclick="toggleAlert(${alert.id})" class="btn btn-sm btn-outline-secondary" title="${alert.isActive ? 'Tạm dừng' : 'Kích hoạt'}">
+                                            <i class="fas ${alert.isActive ? 'fa-pause' : 'fa-play'}"></i>
+                                        </button>
+                                        <button onclick="deleteAlert(${alert.id})" class="btn btn-sm btn-outline-danger" title="Xóa">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="text-muted small">
+                                    ${alert.location ? `<div><i class="fas fa-map-marker-alt me-2"></i>${alert.location}</div>` : ''}
+                                    ${alert.jobFieldName ? `<div><i class="fas fa-briefcase me-2"></i>${alert.jobFieldName}</div>` : ''}
+                                    ${alert.minSalary ? `<div><i class="fas fa-money-bill-wave me-2"></i>Từ ${alert.minSalary.toLocaleString('vi-VN')} VND</div>` : ''}
+                                </div>
+                                <small class="text-muted d-block mt-3">
+                                    <i class="fas fa-clock me-1"></i>Tạo: ${new Date(alert.createdAt).toLocaleDateString('vi-VN')}
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Load alerts error:', error);
+                container.innerHTML = `
+                    <div class="col-12 text-center py-5">
+                        <i class="fas fa-exclamation-triangle fa-4x text-danger mb-3"></i>
+                        <h5 class="text-danger">Đã xảy ra lỗi</h5>
+                    </div>`;
+            }
+        }
+
+        function openCreateAlertModal() {
+            document.getElementById('createAlertForm').reset();
+            new bootstrap.Modal(document.getElementById('createAlertModal')).show();
+        }
+
+        async function createAlert(e) {
+            e.preventDefault();
+
+            const data = {
+                keywords: document.getElementById('alertKeywords').value || null,
+                location: document.getElementById('alertLocation').value || null,
+                jobFieldId: document.getElementById('alertField').value || null,
+                minSalary: document.getElementById('alertMinSalary').value ? parseInt(document.getElementById('alertMinSalary').value) : null
+            };
+
+            // Remove null values
+            Object.keys(data).forEach(key => data[key] === null && delete data[key]);
+
+            try {
+                const response = await fetchWithAuth('/api/job-alerts', {
+                    method: 'POST',
+                    body: JSON.stringify(data)
+                });
+
+                if (response.ok) {
+                    showToast('Đã tạo alert thành công!', 'success');
+                    bootstrap.Modal.getInstance(document.getElementById('createAlertModal')).hide();
+                    loadAlerts();
+                } else {
+                    showToast('Không thể tạo alert', 'error');
+                }
+            } catch (error) {
+                console.error('Create alert error:', error);
+                showToast('Có lỗi xảy ra', 'error');
+            }
+        }
+
+        async function toggleAlert(alertId) {
+            try {
+                const response = await fetchWithAuth(`/api/job-alerts/${alertId}/toggle`, { method: 'PATCH' });
+                if (response.ok) {
+                    showToast('Đã cập nhật trạng thái alert', 'success');
+                    loadAlerts();
+                } else {
+                    showToast('Không thể cập nhật alert', 'error');
+                }
+            } catch (error) {
+                console.error('Toggle alert error:', error);
+                showToast('Có lỗi xảy ra', 'error');
+            }
+        }
+
+        async function deleteAlert(alertId) {
+            if (!confirm('Bạn có chắc muốn xóa alert này?')) return;
+
+            try {
+                const response = await fetchWithAuth(`/api/job-alerts/${alertId}`, { method: 'DELETE' });
+                if (response.ok) {
+                    showToast('Đã xóa alert', 'success');
+                    loadAlerts();
+                } else {
+                    showToast('Không thể xóa alert', 'error');
+                }
+            } catch (error) {
+                console.error('Delete alert error:', error);
+                showToast('Có lỗi xảy ra', 'error');
+            }
+        }
+    </script>
+</th:block>
+</body>
+</html>

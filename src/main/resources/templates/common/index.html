@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/main-layout}">
+<head>
+    <title>Trang chủ - RecruitBox</title>
+    <style>
+        html, body {
+            height: 100%;
+            overflow-x: hidden;
+        }
+        body {
+            overflow-y: auto !important;
+        }
+        .modal-backdrop {
+            display: none !important;
+        }
+        .jobs-section {
+            background-color: #F5F5F5;
+            padding: 30px 0;
+            min-height: 100vh;
+        }
+        .jobs-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+        .job-card-new {
+            background: #fff;
+            border: 1px solid #E0E0E0;
+            border-radius: 10px;
+            padding: 16px 20px;
+            display: flex;
+            gap: 16px;
+            transition: box-shadow 0.2s, transform 0.2s;
+        }
+        .job-card-new:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+        }
+        .job-logo {
+            width: 80px;
+            height: 80px;
+            min-width: 80px;
+            border-radius: 8px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f8f8f8;
+            border: 1px solid #eee;
+        }
+        .job-logo img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        .job-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .job-title-new {
+            font-size: 16px;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-bottom: 4px;
+            text-decoration: none;
+            display: block;
+        }
+        .job-title-new:hover {
+            color: #E91E63;
+        }
+        .company-name {
+            font-size: 13px;
+            color: #666;
+            text-transform: uppercase;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        .job-meta-row {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+        .job-salary-new {
+            color: #E91E63;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        .job-location {
+            color: #999;
+            font-size: 13px;
+        }
+        .job-badges {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            align-items: flex-end;
+        }
+        .badge-top {
+            background: #FFC107;
+            color: #000;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 3px;
+            text-transform: uppercase;
+        }
+        .badge-new {
+            color: #E91E63;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+        .job-card-wrapper {
+            position: relative;
+        }
+        .pagination-new {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 30px;
+        }
+        .page-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 1px solid #E0E0E0;
+            background: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 14px;
+            color: #666;
+            transition: all 0.2s;
+        }
+        .page-btn:hover {
+            border-color: #FFC107;
+            color: #FFC107;
+        }
+        .page-btn.active {
+            background: #FFC107;
+            border-color: #FFC107;
+            color: #000;
+            font-weight: 700;
+        }
+        .page-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .page-btn-nav {
+            width: auto;
+            padding: 0 12px;
+        }
+        @media (max-width: 768px) {
+            .jobs-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        .blog-carousel-section {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        }
+        .blog-carousel-card {
+            background: #fff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .blog-carousel-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+        .blog-carousel-img {
+            height: 160px;
+            overflow: hidden;
+        }
+        .blog-carousel-img img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s;
+        }
+        .blog-carousel-card:hover .blog-carousel-img img {
+            transform: scale(1.05);
+        }
+        .blog-carousel-content {
+            padding: 16px;
+        }
+        .blog-carousel-title {
+            color: #1a1a1a;
+            font-weight: 700;
+            margin-bottom: 8px;
+            line-height: 1.4;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .blog-carousel-card:hover .blog-carousel-title {
+            color: #E91E63;
+        }
+        .carousel-control-prev, .carousel-control-next {
+            width: auto;
+            top: 50%;
+            transform: translateY(-50%);
+            bottom: auto;
+            opacity: 1;
+        }
+        .carousel-control-prev {
+            left: -40px;
+        }
+        .carousel-control-next {
+            right: -40px;
+        }
+        .carousel-control-prev-icon, .carousel-control-next-icon {
+            width: 20px;
+            height: 20px;
+        }
+        @media (max-width: 768px) {
+            .carousel-control-prev {
+                left: 10px;
+            }
+            .carousel-control-next {
+                right: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div layout:fragment="content">
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="container">
+            <div class="row align-items-center g-5">
+                <div class="col-lg-6 mb-5 mb-lg-0">
+                    <span class="badge badge-coral mb-3 animate-fade-in">
+                        <i class="fas fa-rocket me-1"></i> Nền tảng tuyển dụng hàng đầu
+                    </span>
+                    <h1 class="animate-fade-in-up">
+                        Tìm <span class="text-gradient-coral">công việc mơ ước</span><br>
+                        của bạn ngay hôm nay
+                    </h1>
+                    <p class="lead text-light animate-fade-in-up stagger-1">
+                        Hàng nghìn cơ hội việc làm hấp dẫn đang chờ đón bạn.
+                        Kết nối với nhà tuyển dụng hàng đầu Việt Nam.
+                    </p>
+
+                    <!-- Stats -->
+                    <div class="d-flex flex-wrap gap-4 mt-4 animate-fade-in-up stagger-2">
+                        <div class="stat-card coral">
+                            <div class="stat-icon">
+                                <i class="fas fa-briefcase"></i>
+                            </div>
+                            <div class="stat-number" th:text="${homeStats != null ? (homeStats.totalJobs >= 1000 ? (homeStats.totalJobs / 1000) + 'K+' : homeStats.totalJobs) : '0'}">0</div>
+                            <div class="stat-label">Việc làm</div>
+                        </div>
+                        <div class="stat-card teal">
+                            <div class="stat-icon">
+                                <i class="fas fa-building"></i>
+                            </div>
+                            <div class="stat-number" th:text="${homeStats != null ? (homeStats.totalCompanies >= 1000 ? (homeStats.totalCompanies / 1000) + 'K+' : homeStats.totalCompanies) : '0'}">0</div>
+                            <div class="stat-label">Công ty</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <div class="stat-number" th:text="${homeStats != null ? (homeStats.totalCandidates >= 1000 ? (homeStats.totalCandidates / 1000) + 'K+' : homeStats.totalCandidates) : '0'}">0</div>
+                            <div class="stat-label">Ứng viên</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Search Box -->
+                <div class="col-lg-5 offset-lg-1">
+                    <div class="search-box scale-in animate-fade-in-up stagger-3">
+                        <h5 class="fw-bold mb-4 d-flex align-items-center">
+                            <i class="fas fa-search me-2 text-gradient-coral"></i>Tìm kiếm công việc
+                        </h5>
+                        <div class="mb-3">
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-briefcase"></i></span>
+                                <input type="text" id="searchTitle" class="form-control"
+                                       placeholder="Tên công việc, kỹ năng..."
+                                       oninput="debouncedSearch()">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-folder"></i></span>
+                                <select id="searchField" class="form-select" onchange="debouncedSearch()">
+                                    <option value="">-- Chọn ngành nghề --</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="mb-4">
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-map-marker-alt"></i></span>
+                                <select id="searchLocation" class="form-select" onchange="debouncedSearch()">
+                                    <option value="">-- Chọn địa điểm --</option>
+                                    <option value="TP. Hồ Chí Minh">TP. Hồ Chí Minh</option>
+                                    <option value="Hà Nội">Hà Nội</option>
+                                    <option value="Đà Nẵng">Đà Nẵng</option>
+                                    <option value="Cần Thơ">Cần Thơ</option>
+                                    <option value="Hải Phòng">Hải Phòng</option>
+                                    <option value="Biên Hòa">Biên Hòa</option>
+                                    <option value="Nha Trang">Nha Trang</option>
+                                    <option value="Huế">Huế</option>
+                                    <option value="Quy Nhơn">Quy Nhơn</option>
+                                    <option value="Vũng Tàu">Vũng Tàu</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="d-grid">
+                            <button onclick="performSearch()" class="btn btn-primary btn-lg">
+                                <i class="fas fa-search me-2"></i>Tìm kiếm ngay
+                            </button>
+                        </div>
+                        <div class="mt-3 text-center">
+                            <small class="text-muted">
+                                Gợi ý: Java, Frontend, Python, Remote...
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content Area -->
+    <div class="jobs-section">
+        <div class="container">
+            <!-- Section Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h4 class="mb-0 fw-bold">
+                    <i class="fas fa-bolt text-warning me-2"></i>Việc làm mới nhất
+                </h4>
+                <button onclick="loadAllJobs()" class="btn btn-light btn-sm">
+                    <i class="fas fa-refresh me-1"></i>Làm mới
+                </button>
+            </div>
+
+            <!-- Jobs Grid -->
+            <div class="jobs-grid" id="jobs-list-container">
+                <div class="text-center py-5 w-100">
+                    <div class="spinner-border text-primary mb-3"></div>
+                    <p class="text-muted mb-0">Đang tải việc làm mới nhất...</p>
+                </div>
+            </div>
+
+            <!-- Pagination -->
+            <div class="pagination-new" id="pagination-container"></div>
+        </div>
+    </div>
+
+    <!-- Features Section -->
+    <div class="container my-5">
+        <div class="row g-4">
+            <div class="col-md-4 animate-fade-in-up stagger-1">
+                <div class="feature-card h-100">
+                    <div class="feature-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <h5>An toàn & Bảo mật</h5>
+                    <p>Thông tin cá nhân và hồ sơ ứng tuyển của bạn luôn được bảo mật tuyệt đối.</p>
+                </div>
+            </div>
+            <div class="col-md-4 animate-fade-in-up stagger-2">
+                <div class="feature-card h-100">
+                    <div class="feature-icon">
+                        <i class="fas fa-bolt"></i>
+                    </div>
+                    <h5>Ứng tuyển nhanh chóng</h5>
+                    <p>Chỉ với vài click, bạn đã có thể ứng tuyển vào công việc mong muốn.</p>
+                </div>
+            </div>
+            <div class="col-md-4 animate-fade-in-up stagger-3">
+                <div class="feature-card h-100">
+                    <div class="feature-icon">
+                        <i class="fas fa-headset"></i>
+                    </div>
+                    <h5>Hỗ trợ 24/7</h5>
+                    <p>Đội ngũ hỗ trợ luôn sẵn sàng giải đáp mọi thắc mắc của bạn.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Blog Carousel Section -->
+    <section class="blog-carousel-section py-5" th:if="${featuredBlogs != null and not #lists.isEmpty(featuredBlogs)}">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h4 class="mb-0 fw-bold">
+                    <i class="fas fa-blog text-primary me-2"></i>Cẩm nang nghề nghiệp
+                </h4>
+                <a th:href="@{/blogs}" class="btn btn-outline-primary btn-sm">
+                    Xem tất cả <i class="fas fa-arrow-right ms-1"></i>
+                </a>
+            </div>
+            <div id="blogCarousel" class="carousel slide" data-bs-ride="carousel" data-bs-interval="4000">
+                <div class="carousel-inner">
+                    <div class="carousel-item" th:classappend="${iterStat.index == 0} ? 'active' : ''"
+                         th:each="blog, iterStat : ${featuredBlogs}" th:if="${iterStat.index % 3 == 0}">
+                        <div class="row g-4">
+                            <div class="col-md-4" th:each="b : ${featuredBlogs.subList(iterStat.index, iterStat.index + 3 > featuredBlogs.size() ? featuredBlogs.size() : iterStat.index + 3)}">
+                                <div class="blog-carousel-card h-100">
+                                    <a th:href="@{/blogs/{id}(id=${b.id})}" class="text-decoration-none">
+                                        <div class="blog-carousel-img">
+                                            <img th:if="${b.imageUrl != null and !b.imageUrl.isEmpty()}" 
+                                                 th:src="${b.imageUrl}" alt="Blog image">
+                                            <div th:unless="${b.imageUrl != null and !b.imageUrl.isEmpty()}" 
+                                                 class="bg-secondary d-flex align-items-center justify-content-center">
+                                                <i class="fas fa-image fa-2x text-white"></i>
+                                            </div>
+                                        </div>
+                                        <div class="blog-carousel-content">
+                                            <h6 class="blog-carousel-title" th:text="${b.title}"></h6>
+                                            <p class="blog-carousel-summary text-muted small mb-2" 
+                                               th:text="${#strings.length(b.summary) > 80 ? #strings.substring(b.summary, 0, 80) + '...' : (b.summary != null ? b.summary : '')}"></p>
+                                            <small class="text-muted">
+                                                <i class="fas fa-calendar-alt me-1"></i>
+                                                <span th:text="${#temporals.format(b.createdAt, 'dd/MM/yyyy')}"></span>
+                                            </small>
+                                        </div>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <button class="carousel-control-prev" type="button" data-bs-target="#blogCarousel" data-bs-slide="prev">
+                    <span class="carousel-control-prev-icon bg-dark rounded-circle p-3"></span>
+                </button>
+                <button class="carousel-control-next" type="button" data-bs-target="#blogCarousel" data-bs-slide="next">
+                    <span class="carousel-control-next-icon bg-dark rounded-circle p-3"></span>
+                </button>
+            </div>
+        </div>
+    </section>
+</div>
+
+<th:block layout:fragment="scripts">
+    <!-- <script th:src="@{/js/application.js}"></script> -->
+    <script>
+        let currentPage = 1;
+        const pageSize = 10;
+        let currentFilters = { title: '', location: '', fieldId: '' };
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadJobFields();
+            loadAllJobsPaginated();
+        });
+
+        async function loadJobFields() {
+            try {
+                const response = await fetch('/api/job-fields');
+                if (response.ok) {
+                    const jobFields = await response.json();
+                    const select = document.getElementById('searchField');
+                    select.innerHTML = '<option value="">-- Chọn ngành nghề --</option>';
+                    jobFields.forEach(field => {
+                        const option = document.createElement('option');
+                        option.value = field.id;
+                        option.textContent = field.name;
+                        select.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error('Error loading job fields:', error);
+            }
+        }
+
+        async function loadAllJobsPaginated(page = 1) {
+            currentPage = page;
+            const container = document.getElementById('jobs-list-container');
+            container.innerHTML = `
+                <div class="text-center py-5 w-100">
+                    <div class="spinner-border text-primary mb-3"></div>
+                    <p class="text-muted mb-0">Đang tải việc làm mới nhất...</p>
+                </div>
+            `;
+
+            try {
+                let url = `/api/jobs/public/paginated?page=${page}&size=${pageSize}`;
+                
+                if (currentFilters.title || currentFilters.location || currentFilters.fieldId) {
+                    url = `/api/jobs/search/paginated?page=${page}&size=${pageSize}`;
+                    if (currentFilters.title) url += `&title=${encodeURIComponent(currentFilters.title)}`;
+                    if (currentFilters.location) url += `&location=${encodeURIComponent(currentFilters.location)}`;
+                    if (currentFilters.fieldId) url += `&fieldId=${currentFilters.fieldId}`;
+                }
+
+                console.log('Fetching jobs from:', url);
+                const response = await fetch(url);
+                console.log('Response status:', response.status);
+                if (!response.ok) throw new Error('Failed to fetch jobs: ' + response.status);
+
+                const data = await response.json();
+                console.log('Jobs loaded:', data.jobs?.length, 'total:', data.totalItems);
+                renderJobs(data.jobs);
+                renderPagination(data.currentPage, data.totalPages);
+            } catch (error) {
+                console.error('Error loading jobs:', error);
+                container.innerHTML = `
+                    <div class="col-12 text-center py-5">
+                        <i class="fas fa-exclamation-triangle fa-3x text-danger mb-3"></i>
+                        <p class="text-danger">Có lỗi xảy ra khi tải việc làm: ${error.message}</p>
+                        <button onclick="loadAllJobsPaginated(${page})" class="btn btn-outline-primary mt-2">
+                            <i class="fas fa-redo me-2"></i>Thử lại
+                        </button>
+                    </div>
+                `;
+            }
+        }
+
+        function renderJobs(jobs) {
+            const container = document.getElementById('jobs-list-container');
+            
+            if (!jobs || jobs.length === 0) {
+                container.innerHTML = `
+                    <div class="col-12 text-center py-5">
+                        <i class="fas fa-briefcase fa-3x text-muted mb-3"></i>
+                        <p class="text-muted mb-0">Không có việc làm nào được tìm thấy</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = jobs.map((job, index) => {
+                const daysAgo = getDaysAgo(job.createdAt);
+                const isNew = daysAgo <= 3;
+                const isTop = index < 3;
+                
+                return `
+                    <div class="job-card-wrapper animate-fade-in-up" style="animation-delay: ${index * 0.05}s">
+                        ${(isTop || isNew) ? `
+                            <div class="job-badges">
+                                ${isTop ? '<span class="badge-top">TOP</span>' : ''}
+                                ${isNew ? '<span class="badge-new">Mới</span>' : ''}
+                            </div>
+                        ` : ''}
+                        <div class="job-card-new">
+                            <div class="job-logo">
+                                ${job.companyLogo 
+                                    ? `<img src="${job.companyLogo}" alt="${job.companyName}">` 
+                                    : `<img src="https://ui-avatars.com/api/?name=${encodeURIComponent(job.companyName)}&size=80&background=E91E63&color=fff&bold=true&rounded=true" alt="${job.companyName}">`
+                                }
+                            </div>
+                            <div class="job-info">
+                                <a href="/jobs/${job.id}" class="job-title-new">${job.title}</a>
+                                <div class="company-name">${job.companyName}</div>
+                                <div class="job-meta-row">
+                                    <span class="job-salary-new">
+                                        <i class="fas fa-dollar-sign me-1"></i>${formatSalary(job.salaryMin, job.salaryMax)}
+                                    </span>
+                                    <span class="job-location">
+                                        <i class="fas fa-map-marker-alt me-1"></i>${job.location || 'Không xác định'}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function formatSalary(min, max) {
+            if (!min && !max) return 'Cạnh tranh';
+            const minM = min ? (min / 1000000).toFixed(0) : '0';
+            const maxM = max ? (max / 1000000).toFixed(0) : '0';
+            if (minM === maxM) return minM + ' triệu';
+            return `${minM} - ${maxM} triệu`;
+        }
+
+        function getDaysAgo(dateString) {
+            if (!dateString) return 999;
+            const date = new Date(dateString);
+            const now = new Date();
+            const diff = Math.floor((now - date) / (1000 * 60 * 60 * 24));
+            return diff;
+        }
+
+        function renderPagination(currentPage, totalPages) {
+            const container = document.getElementById('pagination-container');
+            
+            if (totalPages <= 1) {
+                container.innerHTML = '';
+                return;
+            }
+
+            let html = '';
+
+            html += `
+                <button class="page-btn page-btn-nav ${currentPage === 1 ? 'disabled' : ''}" onclick="loadAllJobsPaginated(${currentPage - 1})">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+            `;
+
+            const maxVisible = 5;
+            let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
+            let endPage = Math.min(totalPages, startPage + maxVisible - 1);
+
+            if (endPage - startPage < maxVisible - 1) {
+                startPage = Math.max(1, endPage - maxVisible + 1);
+            }
+
+            if (startPage > 1) {
+                html += `<button class="page-btn" onclick="loadAllJobsPaginated(1)">1</button>`;
+                if (startPage > 2) {
+                    html += `<span class="page-btn disabled">...</span>`;
+                }
+            }
+
+            for (let i = startPage; i <= endPage; i++) {
+                html += `
+                    <button class="page-btn ${i === currentPage ? 'active' : ''}" onclick="loadAllJobsPaginated(${i})">${i}</button>
+                `;
+            }
+
+            if (endPage < totalPages) {
+                if (endPage < totalPages - 1) {
+                    html += `<span class="page-btn disabled">...</span>`;
+                }
+                html += `<button class="page-btn" onclick="loadAllJobsPaginated(${totalPages})">${totalPages}</button>`;
+            }
+
+            html += `
+                <button class="page-btn page-btn-nav ${currentPage === totalPages ? 'disabled' : ''}" onclick="loadAllJobsPaginated(${currentPage + 1})">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            `;
+
+            container.innerHTML = html;
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return '';
+            const date = new Date(dateString);
+            const now = new Date();
+            const diff = Math.floor((now - date) / (1000 * 60 * 60 * 24));
+            
+            if (diff === 0) return 'Hôm nay';
+            if (diff === 1) return 'Hôm qua';
+            if (diff < 7) return `${diff} ngày trước`;
+            if (diff < 30) return `${Math.floor(diff / 7)} tuần trước`;
+            return date.toLocaleDateString('vi-VN');
+        }
+
+        let searchTimeout = null;
+
+        function debouncedSearch() {
+            if (searchTimeout) {
+                clearTimeout(searchTimeout);
+            }
+            searchTimeout = setTimeout(() => {
+                performSearch();
+            }, 500);
+        }
+
+        function loadAllJobs() {
+            loadAllJobsPaginated(1);
+        }
+
+        function performSearch() {
+            currentFilters = {
+                title: document.getElementById('searchTitle').value,
+                location: document.getElementById('searchLocation').value,
+                fieldId: document.getElementById('searchField').value
+            };
+            loadAllJobsPaginated(1);
+        }
+    </script>
+</th:block>
+</body>
+</html>

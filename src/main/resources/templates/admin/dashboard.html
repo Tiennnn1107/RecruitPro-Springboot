@@ -1,0 +1,1067 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/main-layout}">
+<head>
+    <th:block layout:fragment="styles">
+        <link th:href="@{/css/dashboard.css}" rel="stylesheet">
+    </th:block>
+    <title>Quản trị - J2PP</title>
+</head>
+<body>
+<div layout:fragment="content" class="py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="section-title mb-0">
+            <i class="fas fa-tachometer-alt text-primary me-2"></i>Dashboard
+        </h2>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-4 col-lg-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body d-flex align-items-center">
+                    <div class="bg-primary rounded-3 p-3 me-3">
+                        <i class="fas fa-users text-white fs-4"></i>
+                    </div>
+                    <div>
+                        <h3 class="mb-0 fw-bold" id="totalUsers">0</h3>
+                        <small class="text-muted">Người dùng</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 col-lg-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body d-flex align-items-center">
+                    <div class="bg-success rounded-3 p-3 me-3">
+                        <i class="fas fa-user-tie text-white fs-4"></i>
+                    </div>
+                    <div>
+                        <h3 class="mb-0 fw-bold" id="totalCandidates">0</h3>
+                        <small class="text-muted">Ứng viên</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 col-lg-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body d-flex align-items-center">
+                    <div class="bg-info rounded-3 p-3 me-3">
+                        <i class="fas fa-building text-white fs-4"></i>
+                    </div>
+                    <div>
+                        <h3 class="mb-0 fw-bold" id="totalRecruiters">0</h3>
+                        <small class="text-muted">Nhà tuyển dụng</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 col-lg-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body d-flex align-items-center">
+                    <div class="bg-warning rounded-3 p-3 me-3">
+                        <i class="fas fa-briefcase text-white fs-4"></i>
+                    </div>
+                    <div>
+                        <h3 class="mb-0 fw-bold" id="totalJobPostings">0</h3>
+                        <small class="text-muted">Tin tuyển dụng</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 col-lg-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body d-flex align-items-center">
+                    <div class="bg-info rounded-3 p-3 me-3">
+                        <i class="fas fa-building text-white fs-4"></i>
+                    </div>
+                    <div>
+                        <h3 class="mb-0 fw-bold" id="totalCompanies">0</h3>
+                        <small class="text-muted">Công ty</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 col-lg-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body d-flex align-items-center">
+                    <div class="bg-danger rounded-3 p-3 me-3">
+                        <i class="fas fa-paper-plane text-white fs-4"></i>
+                    </div>
+                    <div>
+                        <h3 class="mb-0 fw-bold" id="totalApplications">0</h3>
+                        <small class="text-muted">Đơn ứng tuyển</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 col-lg-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body d-flex align-items-center">
+                    <div class="bg-purple rounded-3 p-3 me-3">
+                        <i class="fas fa-calendar-check text-white fs-4"></i>
+                    </div>
+                    <div>
+                        <h3 class="mb-0 fw-bold" id="totalInterviews">0</h3>
+                        <small class="text-muted">Phỏng vấn</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 col-lg-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body d-flex align-items-center">
+                    <div class="bg-secondary rounded-3 p-3 me-3">
+                        <i class="fas fa-blog text-white fs-4"></i>
+                    </div>
+                    <div>
+                        <h3 class="mb-0 fw-bold" id="totalBlogs">0</h3>
+                        <small class="text-muted">Blog</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Management Section -->
+    <div class="card border-0 shadow-sm mt-4">
+        <div class="card-header bg-white py-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="fas fa-users-cog me-2 text-primary"></i>Quản lý người dùng
+                </h5>
+                <div class="d-flex gap-2">
+                    <input type="text" class="form-control" id="searchUsers" placeholder="Tìm kiếm theo email..." style="width: 250px;">
+                </div>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4 py-3">ID</th>
+                            <th class="py-3">Email</th>
+                            <th class="py-3">Vai trò</th>
+                            <th class="py-3">Trạng thái</th>
+                            <th class="py-3">Trạng thái</th>
+                            <th class="py-3">Ngày tạo</th>
+                            <th class="text-center py-3 pe-4">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usersTableBody">
+                        <tr>
+                            <td colspan="7" class="text-center py-5">
+                                <div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;"></div>
+                                <p class="text-muted mb-0">Đang tải dữ liệu...</p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pending Recruiter Approvals Section -->
+    <div class="card border-0 shadow-sm mt-4" id="pendingSection" style="display: none;">
+        <div class="card-header bg-white py-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="fas fa-user-clock me-2 text-warning"></i>Yêu cầu phê duyệt nhà tuyển dụng
+                </h5>
+                <span class="badge bg-warning" id="pendingCount">0</span>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4 py-3">ID</th>
+                            <th class="py-3">Công ty</th>
+                            <th class="py-3">Mã số thuế</th>
+                            <th class="py-3">Người đại diện</th>
+                            <th class="py-3">Ngày tạo</th>
+                            <th class="text-center py-3 pe-4">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody id="pendingApprovalTableBody">
+                        <tr>
+                            <td colspan="6" class="text-center py-5">
+                                <p class="text-muted mb-0">Không có yêu cầu nào</p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Approval Detail Modal -->
+    <div class="modal fade" id="approvalDetailModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-building me-2"></i>Chi tiết yêu cầu phê duyệt</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="approvalDetailContent">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                    <button type="button" class="btn btn-danger" onclick="rejectApproval()">
+                        <i class="fas fa-times me-2"></i>Từ chối
+                    </button>
+                    <button type="button" class="btn btn-success" onclick="approveApproval()">
+                        <i class="fas fa-check me-2"></i>Phê duyệt
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Job Posting Management Section -->
+    <div class="card border-0 shadow-sm mt-4">
+        <div class="card-header bg-white py-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="fas fa-briefcase me-2 text-warning"></i>Quản lý tin tuyển dụng
+                </h5>
+                <div class="d-flex gap-2">
+                    <input type="text" class="form-control" id="searchJobs" placeholder="Tìm kiếm tin tuyển dụng..." style="width: 250px;">
+                </div>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4 py-3">ID</th>
+                            <th class="py-3">Tiêu đề</th>
+                            <th class="py-3">Công ty</th>
+                            <th class="py-3">Địa điểm</th>
+                            <th class="py-3">Trạng thái</th>
+                            <th class="py-3">Ngày tạo</th>
+                            <th class="text-center py-3 pe-4">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody id="jobsTableBody">
+                        <tr>
+                            <td colspan="7" class="text-center py-5">
+                                <div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;"></div>
+                                <p class="text-muted mb-0">Đang tải dữ liệu...</p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Company Management Section -->
+    <div class="card border-0 shadow-sm mt-4">
+        <div class="card-header bg-white py-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="fas fa-building me-2 text-info"></i>Quản lý công ty
+                </h5>
+                <div class="d-flex gap-2">
+                    <input type="text" class="form-control" id="searchCompanies" placeholder="Tìm kiếm công ty..." style="width: 250px;">
+                </div>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4 py-3">ID</th>
+                            <th class="py-3">Tên công ty</th>
+                            <th class="py-3">Email chủ sở hữu</th>
+                            <th class="py-3">Website</th>
+                            <th class="py-3">Quy mô</th>
+                            <th class="py-3">Ngày tạo</th>
+                            <th class="text-center py-3 pe-4">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody id="companiesTableBody">
+                        <tr>
+                            <td colspan="7" class="text-center py-5">
+                                <div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;"></div>
+                                <p class="text-muted mb-0">Đang tải dữ liệu...</p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<th:block layout:fragment="scripts">
+<script>
+let allUsers = [];
+let allJobs = [];
+let allCompanies = [];
+
+// Load dashboard stats
+async function loadDashboardStats() {
+    try {
+        const response = await fetch('/api/admin/dashboard', {
+            headers: getAuthHeaders()
+        });
+
+        if (response.status === 401 || response.status === 403) {
+            console.error('Unauthorized access to admin dashboard');
+            return;
+        }
+        if (!response.ok) throw new Error('Failed to load stats');
+
+        const stats = await response.json();
+
+        document.getElementById('totalUsers').textContent = stats.totalUsers || 0;
+        document.getElementById('totalCandidates').textContent = stats.totalCandidates || 0;
+        document.getElementById('totalRecruiters').textContent = stats.totalRecruiters || 0;
+        document.getElementById('totalCompanies').textContent = stats.totalCompanies || 0;
+        document.getElementById('totalJobPostings').textContent = stats.totalJobPostings || 0;
+        document.getElementById('totalApplications').textContent = stats.totalApplications || 0;
+        document.getElementById('totalInterviews').textContent = stats.totalInterviews || 0;
+        document.getElementById('totalBlogs').textContent = stats.totalBlogs || 0;
+    } catch (error) {
+        console.error('Error loading dashboard stats:', error);
+    }
+}
+
+// Load users
+async function loadUsers() {
+    try {
+        const response = await fetch('/api/admin/users', {
+            headers: getAuthHeaders()
+        });
+
+        if (response.status === 401 || response.status === 403) {
+            console.error('Unauthorized access to users API');
+            document.getElementById('usersTableBody').innerHTML = `
+                <tr>
+                    <td colspan="6" class="text-center py-5">
+                        <i class="fas fa-exclamation-triangle text-danger fa-2x mb-3"></i>
+                        <p class="text-danger">Không có quyền truy cập</p>
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+        if (!response.ok) throw new Error('Failed to load users');
+
+        allUsers = await response.json();
+        renderUsers(allUsers);
+    } catch (error) {
+        console.error('Error loading users:', error);
+        document.getElementById('usersTableBody').innerHTML = `
+            <tr>
+                <td colspan="6" class="text-center py-5">
+                    <i class="fas fa-exclamation-triangle text-warning fa-2x mb-3"></i>
+                    <p class="text-muted">Không thể tải dữ liệu người dùng</p>
+                    <small class="text-muted">${error.message}</small>
+                </td>
+            </tr>
+        `;
+    }
+}
+
+// Render users table
+function renderUsers(users) {
+    const tbody = document.getElementById('usersTableBody');
+
+    if (users.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="7" class="text-center py-5">
+                    <i class="fas fa-users-slash text-muted fa-2x mb-3"></i>
+                    <p class="text-muted mb-0">Không có người dùng nào</p>
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    let html = '';
+    users.forEach(user => {
+        const roleBadgeClass = user.role === 'ADMIN' ? 'bg-danger' :
+                              user.role === 'RECRUITER' ? 'bg-info' : 'bg-success';
+        const isActiveBadgeClass = user.isActive ? 'bg-success' : 'bg-secondary';
+        const isActiveText = user.isActive ? 'Hoạt động' : 'Khóa';
+        
+        const createdDate = new Date(user.createdAt).toLocaleDateString('vi-VN');
+
+        html += `
+            <tr>
+                <td class="ps-4 fw-bold">#${user.id}</td>
+                <td>
+                    <div class="d-flex align-items-center">
+                        <div class="avatar-circle me-3" style="width: 35px; height: 35px; font-size: 0.9rem;">
+                            ${user.email.charAt(0).toUpperCase()}
+                        </div>
+                        <span class="fw-medium">${user.email}</span>
+                    </div>
+                </td>
+                <td><span class="badge ${roleBadgeClass}">${user.role}</span></td>
+                <td><span class="badge ${isActiveBadgeClass}">${isActiveText}</span></td>
+                <td>${createdDate}</td>
+                <td class="text-center">
+                    <div class="btn-group">
+                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
+                            <i class="fas fa-user-shield"></i>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="javascript:void(0)" onclick="updateUserRole(${user.id}, 'CANDIDATE')">
+                                <i class="fas fa-user me-2 text-success"></i>Ứng viên
+                            </a></li>
+                            <li><a class="dropdown-item" href="javascript:void(0)" onclick="updateUserRole(${user.id}, 'RECRUITER')">
+                                <i class="fas fa-briefcase me-2 text-info"></i>Nhà tuyển dụng
+                            </a></li>
+                            ${user.role !== 'ADMIN' ? `
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item text-danger" href="javascript:void(0)" onclick="deleteUser(${user.id})">
+                                <i class="fas fa-trash me-2"></i>Xóa tài khoản
+                            </a></li>
+                            ` : ''}
+                        </ul>
+                    </div>
+                    ${user.role !== 'ADMIN' ? `
+                    <button class="btn btn-sm btn-outline-primary ms-2" onclick="toggleUserStatus(${user.id})" title="${user.isActive ? 'Khóa tài khoản' : 'Mở khóa'}">
+                        <i class="fas ${user.isActive ? 'fa-unlock' : 'fa-lock'}"></i>
+                    </button>
+                    ` : ''}
+                </td>
+            </tr>
+        `;
+    });
+
+    tbody.innerHTML = html;
+}
+
+// Toggle user status
+async function toggleUserStatus(userId) {
+    if (!confirm('Bạn có chắc muốn thay đổi trạng thái tài khoản này?')) return;
+
+    try {
+        const response = await fetch(`/api/admin/users/${userId}/toggle-status`, {
+            method: 'PATCH',
+            headers: getAuthHeaders()
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({ message: 'Có lỗi xảy ra' }));
+            throw new Error(errorData.message || 'Failed to toggle status');
+        }
+
+        const result = await response.json();
+        const index = allUsers.findIndex(u => u.id === userId);
+        if (index !== -1) {
+            allUsers[index] = result;
+        }
+        renderUsers(allUsers);
+        loadDashboardStats();
+        showToast('Đã cập nhật trạng thái tài khoản', 'success');
+    } catch (error) {
+        console.error('Toggle status error:', error);
+        showToast(error.message || 'Có lỗi xảy ra', 'error');
+    }
+}
+
+// Delete user
+async function deleteUser(userId) {
+    if (!confirm('Bạn có chắc muốn xóa tài khoản này? Hành động này không thể hoàn tác.')) return;
+
+    try {
+        const response = await fetch(`/api/admin/users/${userId}`, {
+            method: 'DELETE',
+            headers: getAuthHeaders()
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({ message: 'Có lỗi xảy ra' }));
+            throw new Error(errorData.message || 'Failed to delete user');
+        }
+
+        allUsers = allUsers.filter(u => u.id !== userId);
+        renderUsers(allUsers);
+        loadDashboardStats();
+        showToast('Đã xóa tài khoản', 'success');
+    } catch (error) {
+        console.error('Delete user error:', error);
+        showToast(error.message || 'Có lỗi xảy ra', 'error');
+    }
+}
+
+// Update user role
+async function updateUserRole(userId, newRole) {
+    if (!confirm(`Bạn có chắc muốn thay đổi vai trò người dùng này thành "${newRole === 'CANDIDATE' ? 'Ứng viên' : 'Nhà tuyển dụng'}"?`)) return;
+
+    try {
+        const response = await fetch(`/api/admin/users/${userId}/role?role=${newRole}`, {
+            method: 'PATCH',
+            headers: getAuthHeaders()
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({ message: 'Có lỗi xảy ra' }));
+            throw new Error(errorData.message || 'Failed to update role');
+        }
+
+        const result = await response.json();
+        const index = allUsers.findIndex(u => u.id === userId);
+        if (index !== -1) {
+            allUsers[index] = result;
+        }
+        renderUsers(allUsers);
+        loadDashboardStats();
+        showToast('Đã cập nhật vai trò người dùng', 'success');
+    } catch (error) {
+        console.error('Update role error:', error);
+        showToast(error.message || 'Có lỗi xảy ra', 'error');
+    }
+}
+
+// Search users
+document.getElementById('searchUsers').addEventListener('input', function(e) {
+    const keyword = e.target.value.toLowerCase();
+    if (keyword.length === 0) {
+        renderUsers(allUsers);
+    } else {
+        const filtered = allUsers.filter(u => u.email.toLowerCase().includes(keyword));
+        renderUsers(filtered);
+    }
+});
+
+// ===================== JOB MANAGEMENT =====================
+
+// Load jobs
+async function loadJobs() {
+    try {
+        const response = await fetch('/api/admin/jobs', {
+            headers: getAuthHeaders()
+        });
+
+        if (response.status === 401 || response.status === 403) {
+            console.error('Unauthorized access to jobs API');
+            return;
+        }
+        if (!response.ok) throw new Error('Failed to load jobs');
+
+        allJobs = await response.json();
+        renderJobs(allJobs);
+    } catch (error) {
+        console.error('Error loading jobs:', error);
+        document.getElementById('jobsTableBody').innerHTML = `
+            <tr>
+                <td colspan="7" class="text-center py-5">
+                    <i class="fas fa-exclamation-triangle text-warning fa-2x mb-3"></i>
+                    <p class="text-muted">Không thể tải dữ liệu tin tuyển dụng</p>
+                </td>
+            </tr>
+        `;
+    }
+}
+
+// Render jobs table
+function renderJobs(jobs) {
+    const tbody = document.getElementById('jobsTableBody');
+
+    if (jobs.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="7" class="text-center py-5">
+                    <i class="fas fa-briefcase text-muted fa-2x mb-3"></i>
+                    <p class="text-muted mb-0">Không có tin tuyển dụng nào</p>
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    let html = '';
+    jobs.forEach(job => {
+        const statusBadgeClass = job.status === 'OPEN' ? 'bg-success' :
+                                job.status === 'CLOSED' ? 'bg-secondary' : 'bg-warning';
+        const statusText = job.status === 'OPEN' ? 'Mở' :
+                         job.status === 'CLOSED' ? 'Đóng' : 'Nháp';
+        const createdDate = new Date(job.createdAt).toLocaleDateString('vi-VN');
+
+        html += `
+            <tr>
+                <td class="ps-4 fw-bold">#${job.id}</td>
+                <td>
+                    <span class="fw-medium">${job.title}</span>
+                </td>
+                <td>${job.companyName}</td>
+                <td>${job.location || '-'}</td>
+                <td><span class="badge ${statusBadgeClass}">${statusText}</span></td>
+                <td>${createdDate}</td>
+                <td class="text-center">
+                    <div class="btn-group">
+                        <button class="btn btn-sm btn-outline-primary dropdown-toggle" data-bs-toggle="dropdown">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="javascript:void(0)" onclick="updateJobStatus(${job.id}, 'OPEN')">
+                                <i class="fas fa-check me-2 text-success"></i>Mở tin
+                            </a></li>
+                            <li><a class="dropdown-item" href="javascript:void(0)" onclick="updateJobStatus(${job.id}, 'CLOSED')">
+                                <i class="fas fa-times me-2 text-secondary"></i>Đóng tin
+                            </a></li>
+                            <li><a class="dropdown-item" href="javascript:void(0)" onclick="updateJobStatus(${job.id}, 'DRAFT')">
+                                <i class="fas fa-save me-2 text-warning"></i>Chuyển nháp
+                            </a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item text-danger" href="javascript:void(0)" onclick="deleteJob(${job.id})">
+                                <i class="fas fa-trash me-2"></i>Xóa tin
+                            </a></li>
+                        </ul>
+                    </div>
+                </td>
+            </tr>
+        `;
+    });
+
+    tbody.innerHTML = html;
+}
+
+// Update job status
+async function updateJobStatus(jobId, status) {
+    try {
+        const response = await fetch(`/api/admin/jobs/${jobId}/status?status=${status}`, {
+            method: 'PATCH',
+            headers: getAuthHeaders()
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({ message: 'Có lỗi xảy ra' }));
+            throw new Error(errorData.message || 'Failed to update job status');
+        }
+
+        const result = await response.json();
+        const index = allJobs.findIndex(j => j.id === jobId);
+        if (index !== -1) {
+            allJobs[index] = result;
+        }
+        renderJobs(allJobs);
+        loadDashboardStats();
+        showToast('Đã cập nhật trạng thái tin tuyển dụng', 'success');
+    } catch (error) {
+        console.error('Update job status error:', error);
+        showToast(error.message || 'Có lỗi xảy ra', 'error');
+    }
+}
+
+// Delete job
+async function deleteJob(jobId) {
+    if (!confirm('Bạn có chắc muốn xóa tin tuyển dụng này? Hành động này không thể hoàn tác.')) return;
+
+    try {
+        const response = await fetch(`/api/admin/jobs/${jobId}`, {
+            method: 'DELETE',
+            headers: getAuthHeaders()
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({ message: 'Có lỗi xảy ra' }));
+            throw new Error(errorData.message || 'Failed to delete job');
+        }
+
+        allJobs = allJobs.filter(j => j.id !== jobId);
+        renderJobs(allJobs);
+        loadDashboardStats();
+        showToast('Đã xóa tin tuyển dụng', 'success');
+    } catch (error) {
+        console.error('Delete job error:', error);
+        showToast(error.message || 'Có lỗi xảy ra', 'error');
+    }
+}
+
+// Search jobs
+document.getElementById('searchJobs').addEventListener('input', function(e) {
+    const keyword = e.target.value.toLowerCase();
+    if (keyword.length === 0) {
+        renderJobs(allJobs);
+    } else {
+        const filtered = allJobs.filter(j =>
+            j.title.toLowerCase().includes(keyword) ||
+            j.companyName.toLowerCase().includes(keyword)
+        );
+        renderJobs(filtered);
+    }
+});
+
+// ===================== COMPANY MANAGEMENT =====================
+
+// Load companies
+async function loadCompanies() {
+    try {
+        const response = await fetch('/api/admin/companies', {
+            headers: getAuthHeaders()
+        });
+
+        if (response.status === 401 || response.status === 403) {
+            console.error('Unauthorized access to companies API');
+            return;
+        }
+        if (!response.ok) throw new Error('Failed to load companies');
+
+        allCompanies = await response.json();
+        renderCompanies(allCompanies);
+    } catch (error) {
+        console.error('Error loading companies:', error);
+        document.getElementById('companiesTableBody').innerHTML = `
+            <tr>
+                <td colspan="7" class="text-center py-5">
+                    <i class="fas fa-exclamation-triangle text-warning fa-2x mb-3"></i>
+                    <p class="text-muted">Không thể tải dữ liệu công ty</p>
+                </td>
+            </tr>
+        `;
+    }
+}
+
+// Render companies table
+function renderCompanies(companies) {
+    const tbody = document.getElementById('companiesTableBody');
+
+    if (companies.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="7" class="text-center py-5">
+                    <i class="fas fa-building text-muted fa-2x mb-3"></i>
+                    <p class="text-muted mb-0">Không có công ty nào</p>
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    let html = '';
+    companies.forEach(company => {
+        const createdDate = new Date(company.createdAt).toLocaleDateString('vi-VN');
+
+        html += `
+            <tr>
+                <td class="ps-4 fw-bold">#${company.id}</td>
+                <td>
+                    <div class="d-flex align-items-center">
+                        <div class="avatar-circle me-3" style="width: 35px; height: 35px; font-size: 0.9rem; background: var(--accent-coral);">
+                            ${company.name.charAt(0).toUpperCase()}
+                        </div>
+                        <span class="fw-medium">${company.name}</span>
+                    </div>
+                </td>
+                <td>${company.userEmail}</td>
+                <td>${company.website || '-'}</td>
+                <td>${company.companySize || '-'}</td>
+                <td>${createdDate}</td>
+                <td class="text-center">
+                    <button class="btn btn-sm btn-outline-danger" onclick="deleteCompany(${company.id})" title="Xóa công ty">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </td>
+            </tr>
+        `;
+    });
+
+    tbody.innerHTML = html;
+}
+
+// Delete company
+async function deleteCompany(companyId) {
+    if (!confirm('Bạn có chắc muốn xóa công ty này? Hành động này không thể hoàn tác.')) return;
+
+    try {
+        const response = await fetch(`/api/admin/companies/${companyId}`, {
+            method: 'DELETE',
+            headers: getAuthHeaders()
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({ message: 'Có lỗi xảy ra' }));
+            throw new Error(errorData.message || 'Failed to delete company');
+        }
+
+        allCompanies = allCompanies.filter(c => c.id !== companyId);
+        renderCompanies(allCompanies);
+        loadDashboardStats();
+        showToast('Đã xóa công ty', 'success');
+    } catch (error) {
+        console.error('Delete company error:', error);
+        showToast(error.message || 'Có lỗi xảy ra', 'error');
+    }
+}
+
+// Search companies
+document.getElementById('searchCompanies').addEventListener('input', function(e) {
+    const keyword = e.target.value.toLowerCase();
+    if (keyword.length === 0) {
+        renderCompanies(allCompanies);
+    } else {
+        const filtered = allCompanies.filter(c =>
+            c.name.toLowerCase().includes(keyword) ||
+            c.userEmail.toLowerCase().includes(keyword)
+        );
+        renderCompanies(filtered);
+    }
+});
+
+// Initialize
+document.addEventListener('DOMContentLoaded', function() {
+    loadDashboardStats();
+    loadUsers();
+    loadPendingApprovals();
+    loadJobs();
+    loadCompanies();
+});
+
+// Update account status (approve/reject)
+async function updateAccountStatus(userId, status) {
+    const statusText = status === 'APPROVED' ? 'phê duyệt' : 'từ chối';
+    if (!confirm(`Bạn có chắc muốn ${statusText} tài khoản này?`)) return;
+
+    try {
+        const response = await fetch(`/api/admin/users/${userId}/account-status?status=${status}`, {
+            method: 'PATCH',
+            headers: getAuthHeaders()
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({ message: 'Có lỗi xảy ra' }));
+            throw new Error(errorData.message || 'Failed to update account status');
+        }
+
+        loadUsers();
+        loadPendingApprovals();
+        loadDashboardStats();
+        showToast(`Đã ${statusText} tài khoản`, 'success');
+    } catch (error) {
+        console.error('Update account status error:', error);
+        showToast(error.message || 'Có lỗi xảy ra', 'error');
+    }
+}
+
+// Load pending recruiter approvals
+let currentApprovalId = null;
+
+async function loadPendingApprovals() {
+    try {
+        const response = await fetch('/api/admin/recruiter-approvals/pending', {
+            headers: getAuthHeaders()
+        });
+
+        if (!response.ok) return;
+
+        const approvals = await response.json();
+        renderPendingApprovals(approvals);
+    } catch (error) {
+        console.error('Error loading pending approvals:', error);
+    }
+}
+
+function renderPendingApprovals(approvals) {
+    const section = document.getElementById('pendingSection');
+    const tbody = document.getElementById('pendingApprovalTableBody');
+    const countBadge = document.getElementById('pendingCount');
+
+    if (!section) return;
+
+    if (approvals.length === 0) {
+        section.style.display = 'none';
+        return;
+    }
+
+    section.style.display = 'block';
+    countBadge.textContent = approvals.length;
+
+    let html = '';
+    approvals.forEach(approval => {
+        const createdDate = new Date(approval.createdAt).toLocaleDateString('vi-VN');
+        const contactInfo = approval.contactPersonName 
+            ? `${approval.contactPersonName}${approval.contactPersonPosition ? ' (' + approval.contactPersonPosition + ')' : ''}`
+            : '-';
+
+        html += `
+            <tr>
+                <td class="ps-4 fw-bold">#${approval.id}</td>
+                <td>
+                    <div class="fw-medium">${approval.companyName || '-'}</div>
+                    <small class="text-muted">${approval.userEmail}</small>
+                </td>
+                <td>${approval.taxCode || '-'}</td>
+                <td>${contactInfo}</td>
+                <td>${createdDate}</td>
+                <td class="text-center">
+                    <button class="btn btn-sm btn-outline-primary" onclick="showApprovalDetail(${approval.id})" title="Xem chi tiết">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                    <button class="btn btn-sm btn-success" onclick="approveApprovalById(${approval.id})" title="Phê duyệt">
+                        <i class="fas fa-check"></i>
+                    </button>
+                    <button class="btn btn-sm btn-danger" onclick="rejectApprovalById(${approval.id})" title="Từ chối">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </td>
+            </tr>
+        `;
+    });
+
+    tbody.innerHTML = html;
+}
+
+async function showApprovalDetail(approvalId) {
+    currentApprovalId = approvalId;
+    
+    try {
+        const response = await fetch('/api/admin/recruiter-approvals', {
+            headers: getAuthHeaders()
+        });
+
+        if (!response.ok) return;
+
+        const approvals = await response.json();
+        const approval = approvals.find(a => a.id === approvalId);
+        
+        if (!approval) return;
+
+        const modalContent = document.getElementById('approvalDetailContent');
+        modalContent.innerHTML = `
+            <div class="row">
+                <div class="col-md-6">
+                    <h6 class="text-primary"><i class="fas fa-building me-2"></i>Thông tin công ty</h6>
+                    <table class="table table-sm">
+                        <tr><td class="fw-bold">Tên công ty:</td><td>${approval.companyName || '-'}</td></tr>
+                        <tr><td class="fw-bold">Mã số thuế:</td><td>${approval.taxCode || '-'}</td></tr>
+                        <tr><td class="fw-bold">Địa chỉ:</td><td>${approval.companyAddress || '-'}</td></tr>
+                        <tr><td class="fw-bold">Số điện thoại:</td><td>${approval.companyPhone || '-'}</td></tr>
+                        <tr><td class="fw-bold">Website:</td><td>${approval.companyWebsite || '-'}</td></tr>
+                        <tr><td class="fw-bold">Giấy phép KD:</td><td>${approval.businessLicenseUrl ? '<a href="' + approval.businessLicenseUrl + '" target="_blank">Xem link</a>' : '-'}</td></tr>
+                    </table>
+                </div>
+                <div class="col-md-6">
+                    <h6 class="text-primary"><i class="fas fa-user-tie me-2"></i>Người đại diện</h6>
+                    <table class="table table-sm">
+                        <tr><td class="fw-bold">Tên:</td><td>${approval.contactPersonName || '-'}</td></tr>
+                        <tr><td class="fw-bold">Chức vụ:</td><td>${approval.contactPersonPosition || '-'}</td></tr>
+                        <tr><td class="fw-bold">Số điện thoại:</td><td>${approval.contactPersonPhone || '-'}</td></tr>
+                    </table>
+                    <h6 class="text-primary mt-4"><i class="fas fa-user me-2"></i>Tài khoản</h6>
+                    <table class="table table-sm">
+                        <tr><td class="fw-bold">Email:</td><td>${approval.userEmail}</td></tr>
+                        <tr><td class="fw-bold">Ngày đăng ký:</td><td>${new Date(approval.createdAt).toLocaleDateString('vi-VN')}</td></tr>
+                    </table>
+                </div>
+            </div>
+            <div class="mt-3">
+                <label class="fw-bold">Ghi chú admin:</label>
+                <textarea class="form-control" id="adminNoteForApproval" rows="2" placeholder="Nhập ghi chú (tùy chọn)"></textarea>
+            </div>
+        `;
+
+        const modal = new bootstrap.Modal(document.getElementById('approvalDetailModal'));
+        modal.show();
+    } catch (error) {
+        console.error('Error showing approval detail:', error);
+    }
+}
+
+async function approveApprovalById(approvalId) {
+    if (!confirm('Bạn có chắc muốn phê duyệt tài khoản này?')) return;
+
+    try {
+        const response = await fetch(`/api/admin/recruiter-approvals/${approvalId}/approve`, {
+            method: 'PATCH',
+            headers: getAuthHeaders()
+        });
+
+        if (!response.ok) throw new Error('Failed to approve');
+
+        loadPendingApprovals();
+        loadUsers();
+        loadDashboardStats();
+        showToast('Đã phê duyệt tài khoản', 'success');
+    } catch (error) {
+        console.error('Approve error:', error);
+        showToast('Có lỗi xảy ra', 'error');
+    }
+}
+
+async function rejectApprovalById(approvalId) {
+    if (!confirm('Bạn có chắc muốn từ chối tài khoản này?')) return;
+
+    try {
+        const response = await fetch(`/api/admin/recruiter-approvals/${approvalId}/reject`, {
+            method: 'PATCH',
+            headers: getAuthHeaders()
+        });
+
+        if (!response.ok) throw new Error('Failed to reject');
+
+        loadPendingApprovals();
+        loadUsers();
+        loadDashboardStats();
+        showToast('Đã từ chối tài khoản', 'success');
+    } catch (error) {
+        console.error('Reject error:', error);
+        showToast('Có lỗi xảy ra', 'error');
+    }
+}
+
+async function approveApproval() {
+    if (!currentApprovalId) return;
+    const adminNote = document.getElementById('adminNoteForApproval')?.value || '';
+    
+    try {
+        const response = await fetch(`/api/admin/recruiter-approvals/${currentApprovalId}/approve?adminNote=${encodeURIComponent(adminNote)}`, {
+            method: 'PATCH',
+            headers: getAuthHeaders()
+        });
+
+        if (!response.ok) throw new Error('Failed to approve');
+
+        bootstrap.Modal.getInstance(document.getElementById('approvalDetailModal')).hide();
+        currentApprovalId = null;
+        
+        loadPendingApprovals();
+        loadUsers();
+        loadDashboardStats();
+        showToast('Đã phê duyệt tài khoản', 'success');
+    } catch (error) {
+        console.error('Approve error:', error);
+        showToast('Có lỗi xảy ra', 'error');
+    }
+}
+
+async function rejectApproval() {
+    if (!currentApprovalId) return;
+    const adminNote = document.getElementById('adminNoteForApproval')?.value || '';
+    
+    try {
+        const response = await fetch(`/api/admin/recruiter-approvals/${currentApprovalId}/reject?adminNote=${encodeURIComponent(adminNote)}`, {
+            method: 'PATCH',
+            headers: getAuthHeaders()
+        });
+
+        if (!response.ok) throw new Error('Failed to reject');
+
+        bootstrap.Modal.getInstance(document.getElementById('approvalDetailModal')).hide();
+        currentApprovalId = null;
+        
+        loadPendingApprovals();
+        loadUsers();
+        loadDashboardStats();
+        showToast('Đã từ chối tài khoản', 'success');
+    } catch (error) {
+        console.error('Reject error:', error);
+        showToast('Có lỗi xảy ra', 'error');
+    }
+}
+</script>
+</th:block>
+</body>
+</html>

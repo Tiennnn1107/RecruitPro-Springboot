@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+    layout:decorate="~{layout/main-layout}">
+
+<head>
+    <title>Lịch phỏng vấn</title>
+</head>
+
+<body>
+    <div layout:fragment="content" class="py-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="fw-bold mb-0">Quản lý lịch phỏng vấn</h2>
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#scheduleInterviewModal">
+                <i class="fas fa-calendar-plus me-2"></i>Tạo lịch mới
+            </button>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="bg-light">
+                                    <tr>
+                                        <th class="ps-4">Ứng viên</th>
+                                        <th>Vị trí</th>
+                                        <th>Thời gian</th>
+                                        <th>Loại hình</th>
+                                        <th>Kết quả</th>
+                                        <th class="text-center pe-4">Thao tác</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="interviews-container">
+                                    <tr>
+                                        <td colspan="6" class="text-center py-5">
+                                            <div class="spinner-border text-primary" role="status"></div>
+                                            <p class="mt-2 text-muted">Đang tải dữ liệu...</p>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Tạo lịch phỏng vấn -->
+    <div class="modal fade" id="scheduleInterviewModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-calendar-plus me-2"></i>Tạo lịch phỏng vấn</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="scheduleInterviewForm">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Chọn ứng viên <span class="text-danger">*</span></label>
+                            <select id="interviewApplicationId" class="form-select" required>
+                                <option value="">-- Chọn ứng viên --</option>
+                            </select>
+                            <small class="text-muted">Danh sách ứng viên đang ở trạng thái "Đã xem xét" hoặc "Mới ứng tuyển" và chưa có lịch phỏng vấn</small>
+                        </div>
+
+                        <!-- Thông tin ứng viên được chọn -->
+                        <div id="selectedCandidateInfo" class="alert alert-info d-none mb-3">
+                            <div class="d-flex align-items-center">
+                                <div class="me-3">
+                                    <i class="fas fa-user-circle fa-2x"></i>
+                                </div>
+                                <div>
+                                    <strong id="candidateNameDisplay"></strong>
+                                    <br><small id="candidateEmailDisplay"></small>
+                                    <br><small class="text-muted">Vị trí: <span id="candidateJobDisplay"></span></small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Thời gian phỏng vấn <span class="text-danger">*</span></label>
+                                <input type="datetime-local" id="interviewDateTime" class="form-control" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Loại hình phỏng vấn <span class="text-danger">*</span></label>
+                                <select id="interviewType" class="form-select" required>
+                                    <option value="ONLINE">Online (Zoom/Google Meet)</option>
+                                    <option value="ONSITE">Trực tiếp</option>
+                                    <option value="PHONE">Điện thoại</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Địa điểm / Link <span class="text-danger">*</span></label>
+                            <input type="text" id="interviewLocation" class="form-control"
+                                placeholder="VD: https://meet.google.com/abc-def-ghi hoặc Tòa nhà ABC, 123 Nguyễn Huệ" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Ghi chú cho ứng viên</label>
+                            <textarea id="interviewNote" class="form-control" rows="3"
+                                placeholder="Nhập ghi chú, lưu ý cho ứng viên..."></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Hủy</button>
+                        <button type="submit" class="btn btn-primary" id="btnScheduleInterview">
+                            <i class="fas fa-calendar-check me-2"></i>Tạo lịch
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <th:block layout:fragment="scripts">
+        <script th:src="@{/js/application.js}"></script>
+        <script>
+            // Explicitly initialize modal to ensure it works
+            document.addEventListener('DOMContentLoaded', function() {
+                const modalElement = document.getElementById('scheduleInterviewModal');
+                const modal = new bootstrap.Modal(modalElement);
+                
+                // Button to open modal
+                const openBtn = document.querySelector('[data-bs-target="#scheduleInterviewModal"]');
+                if (openBtn) {
+                    openBtn.addEventListener('click', function() {
+                        modal.show();
+                    });
+                }
+            });
+
+            // Load danh sách ứng viên có thể phỏng vấn khi modal mở
+            let availableCandidates = [];
+
+            document.getElementById('scheduleInterviewModal').addEventListener('show.bs.modal', async function () {
+                await loadAvailableCandidates();
+            });
+
+            async function loadAvailableCandidates() {
+                const select = document.getElementById('interviewApplicationId');
+                select.innerHTML = '<option value="">Đang tải...</option>';
+
+                try {
+                    const response = await fetchWithAuth('/api/interviews/available-candidates');
+                    if (!response.ok) throw new Error('Failed to load candidates');
+
+                    availableCandidates = await response.json();
+
+                    if (availableCandidates.length === 0) {
+                        select.innerHTML = '<option value="">Không có ứng viên nào khả dụng</option>';
+                        return;
+                    }
+
+                    select.innerHTML = '<option value="">-- Chọn ứng viên --</option>';
+                    availableCandidates.forEach(app => {
+                        const statusBadge = app.status === 'SHORTLISTED'
+                            ? '<span class="badge bg-success ms-2">Đã xem xét</span>'
+                            : '<span class="badge bg-warning ms-2">Mới ứng tuyển</span>';
+                        select.innerHTML += `
+                            <option value="${app.id}" data-candidate-name="${app.candidateName}"
+                                data-candidate-email="${app.candidateEmail}" data-job-title="${app.jobTitle}">
+                                ${app.candidateName} - ${app.jobTitle} ${statusBadge}
+                            </option>
+                        `;
+                    });
+                } catch (error) {
+                    console.error('Error loading candidates:', error);
+                    select.innerHTML = '<option value="">Lỗi khi tải dữ liệu</option>';
+                    showToast('Không thể tải danh sách ứng viên', 'error');
+                }
+            }
+
+            // Hiện thông tin ứng viên khi chọn
+            document.getElementById('interviewApplicationId').addEventListener('change', function() {
+                const selectedOption = this.options[this.selectedIndex];
+                const infoDiv = document.getElementById('selectedCandidateInfo');
+
+                if (this.value) {
+                    document.getElementById('candidateNameDisplay').textContent = selectedOption.dataset.candidateName;
+                    document.getElementById('candidateEmailDisplay').textContent = selectedOption.dataset.candidateEmail;
+                    document.getElementById('candidateJobDisplay').textContent = selectedOption.dataset.jobTitle;
+                    infoDiv.classList.remove('d-none');
+                } else {
+                    infoDiv.classList.add('d-none');
+                }
+            });
+
+            // Xử lý form submit
+            document.getElementById('scheduleInterviewForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+
+                const applicationId = document.getElementById('interviewApplicationId').value;
+                if (!applicationId) {
+                    showToast('Vui lòng chọn ứng viên', 'warning');
+                    return;
+                }
+
+                const scheduledAt = document.getElementById('interviewDateTime').value;
+                if (!scheduledAt) {
+                    showToast('Vui lòng chọn thời gian phỏng vấn', 'warning');
+                    return;
+                }
+
+                const scheduledAtDate = new Date(scheduledAt);
+                if (scheduledAtDate <= new Date()) {
+                    showToast('Thời gian phỏng vấn phải lớn hơn thời gian hiện tại', 'warning');
+                    return;
+                }
+
+                const data = {
+                    applicationId: parseInt(applicationId),
+                    scheduledAt: scheduledAtDate.toISOString(),
+                    type: document.getElementById('interviewType').value,
+                    locationOrLink: document.getElementById('interviewLocation').value,
+                    interviewerNote: document.getElementById('interviewNote').value
+                };
+
+                const submitBtn = document.getElementById('btnScheduleInterview');
+                const originalText = submitBtn.innerHTML;
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Đang tạo lịch...';
+
+                try {
+                    const response = await fetchWithAuth('/api/interviews', {
+                        method: 'POST',
+                        body: JSON.stringify(data)
+                    });
+
+                    if (response.ok) {
+                        showToast('Tạo lịch phỏng vấn thành công!', 'success');
+                        bootstrap.Modal.getInstance(document.getElementById('scheduleInterviewModal')).hide();
+                        loadInterviews();
+                    } else {
+                        const errData = await response.json();
+                        showToast('Lỗi: ' + (errData.message || 'Không thể tạo lịch'), 'error');
+                    }
+                } catch (error) {
+                    console.error('Schedule interview error:', error);
+                    showToast('Có lỗi xảy ra khi tạo lịch', 'error');
+                } finally {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalText;
+                }
+            });
+        </script>
+    </th:block>
+</body>
+
+</html>

@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/main-layout}">
+<head>
+    <title>Đăng nhập - RecruitBox</title>
+    <link th:href="@{/css/auth.css}" rel="stylesheet">
+</head>
+<body>
+<div layout:fragment="content">
+    <div class="auth-page">
+        <div class="auth-container animate-fade-in-up">
+            <!-- Left Side - Branding -->
+            <div class="auth-branding">
+                <div class="auth-branding-content">
+                    <div class="brand-logo">
+                        <span class="brand-icon-lg"><i class="fas fa-briefcase"></i></span>
+                        <span class="brand-text-lg">RecruitBox</span>
+                    </div>
+                    <h1>Kết nối tri thức, kiến tạo tương lai</h1>
+                    <p>Nền tảng tuyển dụng hàng đầu Việt Nam với hàng nghìn cơ hội việc làm đang chờ bạn khám phá.</p>
+
+                    <div class="auth-stats">
+                        <div class="auth-stat">
+                            <span class="stat-number">10K+</span>
+                            <span class="stat-label">Việc làm</span>
+                        </div>
+                        <div class="auth-stat">
+                            <span class="stat-number">5K+</span>
+                            <span class="stat-label">Công ty</span>
+                        </div>
+                        <div class="auth-stat">
+                            <span class="stat-number">1M+</span>
+                            <span class="stat-label">Ứng viên</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="auth-branding-decoration">
+                    <div class="decoration-circle circle-1"></div>
+                    <div class="decoration-circle circle-2"></div>
+                    <div class="decoration-circle circle-3"></div>
+                </div>
+            </div>
+
+            <!-- Right Side - Form -->
+            <div class="auth-form-container">
+                <div class="auth-card">
+                    <div class="auth-header">
+                        <h2>Chào mừng trở lại!</h2>
+                        <p>Đăng nhập để tiếp tục hành trình sự nghiệp của bạn</p>
+                    </div>
+
+                    <div id="loginAlert" class="alert alert-danger hidden" role="alert">
+                        <i class="fas fa-exclamation-circle me-2"></i>
+                        <span id="loginAlertMessage"></span>
+                    </div>
+
+                    <!-- Hướng dẫn đăng nhập Popup -->
+                    <div id="loginGuidePopup" class="login-guide-popup hidden">
+                        <div class="login-guide-overlay"></div>
+                        <div class="login-guide-content">
+                            <button type="button" class="login-guide-close" onclick="closeLoginGuide()">
+                                <i class="fas fa-times"></i>
+                            </button>
+                            <div class="login-guide-header">
+                                <i class="fas fa-info-circle"></i>
+                                <h4>Hướng dẫn đăng nhập</h4>
+                            </div>
+                            <div class="login-guide-body">
+                                <p>Vui lòng nhập thông tin đăng nhập:</p>
+                                <div class="login-guide-accounts">
+                                    <div class="guide-account">
+                                        <strong>Ứng viên:</strong>
+                                        <code>candidate@email.com</code> / <code>password123</code>
+                                    </div>
+                                    <div class="guide-account">
+                                        <strong>Nhà tuyển dụng:</strong>
+                                        <code>recruiter@techviet.com</code> / <code>password123</code>
+                                    </div>
+                                    <div class="guide-account">
+                                        <strong>Quản trị viên:</strong>
+                                        <code>admin@recruitpro.com</code> / <code>password123</code>
+                                    </div>
+                                </div>
+                                <p class="login-guide-note">Hoặc đăng nhập nhanh bằng tài khoản Google</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Hướng dẫn Google OAuth Popup -->
+                    <div id="googleGuidePopup" class="login-guide-popup hidden">
+                        <div class="login-guide-overlay"></div>
+                        <div class="login-guide-content">
+                            <button type="button" class="login-guide-close" onclick="closeGoogleGuide()">
+                                <i class="fas fa-times"></i>
+                            </button>
+                            <div class="login-guide-header">
+                                <i class="fab fa-google"></i>
+                                <h4>Hướng dẫn Google OAuth2</h4>
+                            </div>
+                            <div class="login-guide-body">
+                                <p>Để sử dụng đăng nhập Google, cần cấu hình OAuth2 Client:</p>
+                                <div class="google-guide-steps">
+                                    <div class="guide-step">
+                                        <div class="step-number">1</div>
+                                        <div class="step-content">
+                                            <strong>Truy cập Google Cloud Console</strong>
+                                            <p><a href="https://console.cloud.google.com/" target="_blank">https://console.cloud.google.com/</a></p>
+                                        </div>
+                                    </div>
+                                    <div class="guide-step">
+                                        <div class="step-number">2</div>
+                                        <div class="step-content">
+                                            <strong>Tạo Project hoặc chọn Project có sẵn</strong>
+                                            <p>Tạo credentials OAuth 2.0 Client ID</p>
+                                        </div>
+                                    </div>
+                                    <div class="guide-step">
+                                        <div class="step-number">3</div>
+                                        <div class="step-content">
+                                            <strong>Cấu hình OAuth Consent Screen</strong>
+                                            <p>Thêm email và domain ứng dụng</p>
+                                        </div>
+                                    </div>
+                                    <div class="guide-step">
+                                        <div class="step-number">4</div>
+                                        <div class="step-content">
+                                            <strong>Thêm thông tin vào application.properties</strong>
+                                            <div class="guide-code">
+                                                <code>spring.security.oauth2.client.registration.google.client-id=YOUR_CLIENT_ID</code>
+                                                <code>spring.security.oauth2.client.registration.google.client-secret=YOUR_CLIENT_SECRET</code>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <p class="login-guide-note">Redirect URI: <code id="googleRedirectUri"></code></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <form id="loginForm" class="auth-form">
+                        <div class="form-group">
+                            <label for="email" class="form-label">Email</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                                <input type="email" class="form-control" id="email" required placeholder="name@example.com" autocomplete="email">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="password" class="form-label">Mật khẩu</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                                <input type="password" class="form-control" id="password" required placeholder="Nhập mật khẩu" autocomplete="current-password">
+                                <span class="input-group-text password-toggle" onclick="togglePassword()">
+                                    <i class="fas fa-eye" id="passwordToggleIcon"></i>
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" id="rememberMe">
+                                <label class="form-check-label" for="rememberMe">Ghi nhớ đăng nhập</label>
+                            </div>
+                            <a th:href="@{/forgot-password}" class="forgot-link">Quên mật khẩu?</a>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-submit w-100" id="loginBtn">
+                            <span id="loginBtnText"><i class="fas fa-sign-in-alt me-2"></i>Đăng nhập</span>
+                            <span id="loginBtnLoading" class="hidden">
+                                <span class="spinner-border spinner-border-sm me-2"></span>
+                                Đang xử lý...
+                            </span>
+                        </button>
+
+                        <div class="auth-divider">
+                            <span>hoặc</span>
+                        </div>
+
+                        <a href="/oauth2/authorization/google" class="btn btn-google w-100">
+                            <svg class="google-icon" viewBox="0 0 24 24" width="20" height="20">
+                                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                            </svg>
+                            <span>Đăng nhập với Google</span>
+                        </a>
+                    </form>
+
+                    <div class="auth-footer">
+                        <p>Chưa có tài khoản? <a th:href="@{/register}">Đăng ký ngay</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<th:block layout:fragment="scripts">
+    <script th:src="@{/js/auth.js}"></script>
+    <script>
+        function togglePassword() {
+            const passwordInput = document.getElementById('password');
+            const icon = document.getElementById('passwordToggleIcon');
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                passwordInput.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        }
+    </script>
+</th:block>
+</body>
+</html>

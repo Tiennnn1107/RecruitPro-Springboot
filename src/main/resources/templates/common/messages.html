@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/main-layout}">
+<head>
+    <title>Tin nhắn - J2PP</title>
+    <style>
+        .chat-container {
+            height: calc(100vh - 200px);
+            min-height: 500px;
+        }
+        .conversation-list {
+            height: 100%;
+            overflow-y: auto;
+            border-right: 1px solid #e2e8f0;
+        }
+        .conversation-item {
+            padding: 15px;
+            border-bottom: 1px solid #f1f5f9;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .conversation-item:hover {
+            background: #f8fafc;
+        }
+        .conversation-item.active {
+            background: #e0e7ff;
+        }
+        .conversation-item.unread {
+            background: #f0fdf4;
+        }
+        .message-container {
+            height: calc(100% - 60px);
+            overflow-y: auto;
+            padding: 20px;
+        }
+        .message-bubble {
+            max-width: 70%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            margin-bottom: 10px;
+            position: relative;
+        }
+        .message-sent {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            color: white;
+            margin-left: auto;
+            border-bottom-right-radius: 4px;
+        }
+        .message-received {
+            background: #f1f5f9;
+            color: #1e293b;
+            border-bottom-left-radius: 4px;
+        }
+        .message-time {
+            font-size: 0.7rem;
+            opacity: 0.7;
+            margin-top: 4px;
+        }
+        .message-input-area {
+            padding: 15px;
+            background: white;
+            border-top: 1px solid #e2e8f0;
+        }
+        .no-conversation {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: #94a3b8;
+        }
+        .user-avatar {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+        .user-avatar-primary {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+<div layout:fragment="content" class="py-3">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2 class="section-title mb-0">
+                <i class="fas fa-comments text-primary me-2"></i>Tin nhắn
+            </h2>
+            <div id="unreadBadge"></div>
+        </div>
+
+        <div class="card border-0 shadow-sm chat-container">
+            <div class="row g-0 h-100">
+                <!-- Conversation List -->
+                <div class="col-md-4 conversation-list" id="conversationList">
+                    <div class="p-3 border-bottom bg-light">
+                        <input type="text" class="form-control" placeholder="Tìm kiếm cuộc trò chuyện..."
+                               id="searchConversation">
+                    </div>
+                    <div id="conversationsContainer">
+                        <div class="text-center py-5">
+                            <div class="spinner-border spinner-primary"></div>
+                            <p class="text-muted mt-2">Đang tải...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Message Area -->
+                <div class="col-md-8 d-flex flex-column">
+                    <!-- No conversation selected -->
+                    <div class="no-conversation flex-grow-1" id="noConversation">
+                        <div class="text-center">
+                            <i class="fas fa-comment-dots fa-4x mb-3 opacity-25"></i>
+                            <h5 class="text-muted">Chọn một cuộc trò chuyện</h5>
+                            <p class="small text-muted">Chọn từ danh sách bên trái để bắt đầu nhắn tin</p>
+                        </div>
+                    </div>
+
+                    <!-- Chat area (hidden by default) -->
+                    <div class="d-none flex-column flex-grow-1" id="chatArea">
+                        <!-- Chat Header -->
+                        <div class="p-3 border-bottom d-flex align-items-center justify-content-between bg-light">
+                            <div class="d-flex align-items-center" id="chatHeader">
+                                <div class="user-avatar user-avatar-primary me-3" id="chatAvatar">U</div>
+                                <div>
+                                    <h6 class="mb-0" id="chatUserName">User</h6>
+                                    <small class="text-muted" id="chatUserEmail">email@example.com</small>
+                                </div>
+                            </div>
+                            <a href="#" id="viewProfileLink" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-external-link-alt me-1"></i>Xem hồ sơ
+                            </a>
+                        </div>
+
+                        <!-- Messages -->
+                        <div class="message-container flex-grow-1" id="messagesContainer">
+                            <!-- Messages will be loaded here -->
+                        </div>
+
+                        <!-- Message Input -->
+                        <div class="message-input-area">
+                            <form id="messageForm" class="d-flex gap-2">
+                                <input type="text" class="form-control" id="messageInput"
+                                       placeholder="Nhập tin nhắn..." autocomplete="off">
+                                <button type="submit" class="btn btn-primary px-4">
+                                    <i class="fas fa-paper-plane"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<th:block layout:fragment="scripts">
+    <script th:src="@{/js/application.js}"></script>
+    <script>
+        let currentConversationUserId = null;
+        let conversations = [];
+        let pollingInterval = null;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadConversations();
+            setupMessageForm();
+
+            // Check URL for otherUserId
+            const pathParts = window.location.pathname.split('/');
+            // Check URL for /messages/{userId}
+            // /messages/123 -> ['', 'messages', '123'] -> length 3
+            if (pathParts.length === 3 && pathParts[1] === 'messages' && pathParts[2]) {
+                const otherUserId = parseInt(pathParts[2]);
+                if (otherUserId) {
+                    openConversation(otherUserId);
+                }
+            }
+
+            // Poll for new messages every 5 seconds when on chat page
+            pollingInterval = setInterval(loadConversations, 5000);
+        });
+
+        window.onbeforeunload = function() {
+            if (pollingInterval) clearInterval(pollingInterval);
+        };
+
+        async function loadConversations() {
+            try {
+                const response = await fetchWithAuth('/api/messages/conversations');
+                if (!response.ok) return;
+
+                conversations = await response.json();
+                renderConversations();
+                updateUnreadBadge();
+            } catch (error) {
+                console.error('Load conversations error:', error);
+            }
+        }
+
+        function renderConversations() {
+            const container = document.getElementById('conversationsContainer');
+
+            if (conversations.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-5">
+                        <i class="fas fa-inbox fa-3x text-muted opacity-50 mb-3"></i>
+                        <p class="text-muted">Chưa có cuộc trò chuyện nào</p>
+                    </div>`;
+                return;
+            }
+
+            container.innerHTML = conversations.map(conv => `
+                <div class="conversation-item ${conv.unreadCount > 0 ? 'unread' : ''} ${currentConversationUserId == conv.userId ? 'active' : ''}"
+                     onclick="openConversation(${conv.userId})">
+                    <div class="d-flex">
+                        <div class="user-avatar user-avatar-primary me-3" style="width: 45px; height: 45px; font-size: 1.1rem;">
+                            ${getInitial(conv.userName)}
+                        </div>
+                        <div class="flex-grow-1 overflow-hidden">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h6 class="mb-0 text-truncate">${conv.userName}</h6>
+                                <small class="text-muted">${formatTime(conv.lastMessageAt)}</small>
+                            </div>
+                            <p class="text-muted text-truncate mb-0 small">
+                                ${conv.lastMessage.length > 40 ? conv.lastMessage.substring(0, 40) + '...' : conv.lastMessage}
+                            </p>
+                            ${conv.unreadCount > 0 ? `<span class="badge bg-primary rounded-pill">${conv.unreadCount} mới</span>` : ''}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function openConversation(userId) {
+            currentConversationUserId = userId;
+
+            // Update URL
+            history.pushState({}, '', `/messages/${userId}`);
+
+            // Mark as read
+            await fetchWithAuth(`/api/messages/read/${userId}`, { method: 'PATCH' });
+
+            // Show chat area, hide no-conversation
+            document.getElementById('noConversation').classList.add('d-none');
+            document.getElementById('chatArea').classList.remove('d-none');
+            document.getElementById('chatArea').classList.add('d-flex');
+
+            // Find user info
+            const conv = conversations.find(c => c.userId === userId);
+            if (conv) {
+                document.getElementById('chatUserName').textContent = conv.userName;
+                document.getElementById('chatUserEmail').textContent = conv.userEmail;
+                document.getElementById('chatAvatar').textContent = getInitial(conv.userName);
+                document.getElementById('viewProfileLink').href = '/companies/' + userId;
+            }
+
+            // Load messages
+            await loadMessages(userId);
+
+            // Refresh conversations list
+            loadConversations();
+
+            // Focus input
+            document.getElementById('messageInput').focus();
+        }
+
+        async function loadMessages(userId) {
+            const container = document.getElementById('messagesContainer');
+
+            try {
+                const response = await fetchWithAuth(`/api/messages/conversation/${userId}`);
+                if (!response.ok) return;
+
+                const messages = await response.json();
+                const currentUserId = await getCurrentUserId();
+
+                if (messages.length === 0) {
+                    container.innerHTML = `
+                        <div class="text-center py-5">
+                            <i class="fas fa-comment-dots fa-3x text-muted opacity-50 mb-3"></i>
+                            <p class="text-muted">Chưa có tin nhắn nào. Gửi tin nhắn đầu tiên!</p>
+                        </div>`;
+                } else {
+                    container.innerHTML = messages.map(msg => {
+                        const isSent = msg.senderId === currentUserId;
+                        return `
+                            <div class="d-flex ${isSent ? 'justify-content-end' : 'justify-content-start'}">
+                                <div class="message-bubble ${isSent ? 'message-sent' : 'message-received'}">
+                                    <div>${escapeHtml(msg.content)}</div>
+                                    <div class="message-time text-${isSent ? 'white' : 'muted'}">
+                                        ${formatTime(msg.sentAt)} ${msg.isRead && isSent ? '<i class="fas fa-check-double ms-1"></i>' : ''}
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                }
+
+                // Scroll to bottom
+                container.scrollTop = container.scrollHeight;
+
+            } catch (error) {
+                console.error('Load messages error:', error);
+            }
+        }
+
+        async function getCurrentUserId() {
+            const userInfo = JSON.parse(localStorage.getItem('user_info') || '{}');
+            return userInfo.userId || 0;
+        }
+
+        function setupMessageForm() {
+            const form = document.getElementById('messageForm');
+            const input = document.getElementById('messageInput');
+
+            form.addEventListener('submit', async function(e) {
+                e.preventDefault();
+
+                if (!currentConversationUserId || !input.value.trim()) return;
+
+                const content = input.value.trim();
+                input.value = '';
+
+                try {
+                    await fetchWithAuth('/api/messages', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            receiverId: currentConversationUserId,
+                            content: content
+                        })
+                    });
+
+                    // Reload messages and conversations
+                    await loadMessages(currentConversationUserId);
+                    await loadConversations();
+
+                } catch (error) {
+                    console.error('Send message error:', error);
+                    alert('Không thể gửi tin nhắn');
+                }
+            });
+        }
+
+        function updateUnreadBadge() {
+            const totalUnread = conversations.reduce((sum, c) => sum + (c.unreadCount || 0), 0);
+            const badge = document.getElementById('unreadBadge');
+
+            if (totalUnread > 0) {
+                badge.innerHTML = `<span class="badge bg-danger rounded-pill">${totalUnread} tin nhắn chưa đọc</span>`;
+            } else {
+                badge.innerHTML = '';
+            }
+        }
+
+        function getInitial(name) {
+            if (!name) return 'U';
+            return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+        }
+
+        function formatTime(dateStr) {
+            if (!dateStr) return '';
+            const date = new Date(dateStr);
+            const now = new Date();
+            const diff = now - date;
+
+            if (diff < 60000) return 'Vừa xong';
+            if (diff < 3600000) return Math.floor(diff / 60000) + ' phút';
+            if (diff < 86400000) return Math.floor(diff / 3600000) + ' giờ';
+            if (diff < 604800000) return Math.floor(diff / 86400000) + ' ngày';
+
+            return date.toLocaleDateString('vi-VN');
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
+</th:block>
+</body>
+</html>

@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/main-layout}">
+<head>
+    <th:block layout:fragment="styles">
+        <link th:href="@{/css/dashboard.css}" rel="stylesheet">
+    </th:block>
+    <title>Quản lý Blog - J2PP</title>
+</head>
+<body>
+<div layout:fragment="content" class="py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="section-title mb-0">
+            <i class="fas fa-blog text-primary me-2"></i>Quản lý Blog
+        </h2>
+        <button class="btn btn-primary" onclick="showBlogModal()">
+            <i class="fas fa-plus me-2"></i>Thêm bài viết
+        </button>
+    </div>
+
+    <!-- Blog List -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white py-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="fas fa-list me-2 text-primary"></i>Danh sách bài viết
+                </h5>
+                <input type="text" class="form-control" id="searchBlogs" placeholder="Tìm kiếm..." style="width: 250px;">
+            </div>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4 py-3">ID</th>
+                            <th class="py-3">Tiêu đề</th>
+                            <th class="py-3">Tóm tắt</th>
+                            <th class="py-3">Tác giả</th>
+                            <th class="py-3">Ngày tạo</th>
+                            <th class="text-center py-3 pe-4">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody id="blogsTableBody">
+                        <tr>
+                            <td colspan="6" class="text-center py-5">
+                                <div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;"></div>
+                                <p class="text-muted mb-0">Đang tải dữ liệu...</p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Blog Modal -->
+<div class="modal fade" id="blogModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="blogModalTitle">Thêm bài viết</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="blogForm">
+                    <input type="hidden" id="blogId">
+                    <div class="mb-3">
+                        <label for="blogTitle" class="form-label">Tiêu đề <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="blogTitle" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="blogSummary" class="form-label">Tóm tắt</label>
+                        <textarea class="form-control" id="blogSummary" rows="2"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="blogContent" class="form-label">Nội dung <span class="text-danger">*</span></label>
+                        <textarea class="form-control" id="blogContent" rows="8" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="blogImageUrl" class="form-label">URL hình ảnh</label>
+                        <input type="url" class="form-control" id="blogImageUrl" placeholder="https://...">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-primary" onclick="saveBlog()">Lưu</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<th:block layout:fragment="scripts">
+<script>
+let allBlogs = [];
+let blogModal;
+
+document.addEventListener('DOMContentLoaded', function() {
+    try {
+        blogModal = new bootstrap.Modal(document.getElementById('blogModal'));
+    } catch (e) {
+        console.error('Error initializing modal:', e);
+    }
+    loadBlogs();
+});
+
+async function loadBlogs() {
+    try {
+        const response = await fetch('/api/admin/blogs', {
+            headers: getAuthHeaders()
+        });
+
+        if (!response.ok) throw new Error('Failed to load blogs');
+
+        allBlogs = await response.json();
+        renderBlogs(allBlogs);
+    } catch (error) {
+        console.error('Error loading blogs:', error);
+        document.getElementById('blogsTableBody').innerHTML = `
+            <tr>
+                <td colspan="6" class="text-center py-5">
+                    <i class="fas fa-exclamation-triangle text-warning fa-2x mb-3"></i>
+                    <p class="text-muted">Không thể tải dữ liệu blog</p>
+                </td>
+            </tr>
+        `;
+    }
+}
+
+function renderBlogs(blogs) {
+    const tbody = document.getElementById('blogsTableBody');
+
+    if (blogs.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="6" class="text-center py-5">
+                    <i class="fas fa-blog text-muted fa-2x mb-3"></i>
+                    <p class="text-muted mb-0">Chưa có bài viết nào</p>
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    let html = '';
+    blogs.forEach(blog => {
+        const createdDate = new Date(blog.createdAt).toLocaleDateString('vi-VN');
+        const summary = blog.summary ? blog.summary.substring(0, 80) + '...' : '-';
+
+        html += `
+            <tr>
+                <td class="ps-4 fw-bold">#${blog.id}</td>
+                <td>
+                    <div class="d-flex align-items-center">
+                        ${blog.imageUrl ? `<img src="${blog.imageUrl}" class="rounded me-3" style="width: 50px; height: 50px; object-fit: cover;">` : ''}
+                        <span class="fw-medium">${blog.title}</span>
+                    </div>
+                </td>
+                <td><small class="text-muted">${summary}</small></td>
+                <td><span class="badge bg-secondary">${blog.authorName}</span></td>
+                <td>${createdDate}</td>
+                <td class="text-center">
+                    <button class="btn btn-sm btn-outline-primary me-2" onclick="editBlog(${blog.id})" title="Sửa">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger" onclick="deleteBlog(${blog.id})" title="Xóa">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </td>
+            </tr>
+        `;
+    });
+
+    tbody.innerHTML = html;
+}
+
+function showBlogModal(blog = null) {
+    document.getElementById('blogForm').reset();
+    document.getElementById('blogId').value = '';
+
+    if (blog) {
+        document.getElementById('blogModalTitle').textContent = 'Sửa bài viết';
+        document.getElementById('blogId').value = blog.id;
+        document.getElementById('blogTitle').value = blog.title;
+        document.getElementById('blogSummary').value = blog.summary || '';
+        document.getElementById('blogContent').value = blog.content;
+        document.getElementById('blogImageUrl').value = blog.imageUrl || '';
+    } else {
+        document.getElementById('blogModalTitle').textContent = 'Thêm bài viết';
+    }
+
+    blogModal.show();
+}
+
+function editBlog(id) {
+    const blog = allBlogs.find(b => b.id === id);
+    if (blog) {
+        showBlogModal(blog);
+    }
+}
+
+async function saveBlog() {
+    const id = document.getElementById('blogId').value;
+    const title = document.getElementById('blogTitle').value.trim();
+    const summary = document.getElementById('blogSummary').value.trim();
+    const content = document.getElementById('blogContent').value.trim();
+    const imageUrl = document.getElementById('blogImageUrl').value.trim();
+
+    if (!title || !content) {
+        showToast('Vui lòng điền đầy đủ thông tin bắt buộc', 'error');
+        return;
+    }
+
+    const blogData = { title, summary, content, imageUrl };
+    const url = id ? `/api/admin/blogs/${id}` : '/api/admin/blogs';
+    const method = id ? 'PUT' : 'POST';
+
+    try {
+        const response = await fetch(url, {
+            method: method,
+            headers: {
+                ...getAuthHeaders(),
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(blogData)
+        });
+
+        if (!response.ok) throw new Error('Failed to save blog');
+
+        showToast(id ? 'Đã cập nhật bài viết' : 'Đã thêm bài viết mới', 'success');
+        blogModal.hide();
+        loadBlogs();
+    } catch (error) {
+        console.error('Error saving blog:', error);
+        showToast('Có lỗi xảy ra', 'error');
+    }
+}
+
+async function deleteBlog(id) {
+    if (!confirm('Bạn có chắc muốn xóa bài viết này?')) return;
+
+    try {
+        const response = await fetch(`/api/admin/blogs/${id}`, {
+            method: 'DELETE',
+            headers: getAuthHeaders()
+        });
+
+        if (!response.ok) throw new Error('Failed to delete blog');
+
+        showToast('Đã xóa bài viết', 'success');
+        loadBlogs();
+    } catch (error) {
+        console.error('Error deleting blog:', error);
+        showToast('Có lỗi xảy ra', 'error');
+    }
+}
+
+// Search blogs
+document.getElementById('searchBlogs').addEventListener('input', function(e) {
+    const keyword = e.target.value.toLowerCase();
+    if (keyword.length === 0) {
+        renderBlogs(allBlogs);
+    } else {
+        const filtered = allBlogs.filter(b =>
+            b.title.toLowerCase().includes(keyword) ||
+            (b.summary && b.summary.toLowerCase().includes(keyword))
+        );
+        renderBlogs(filtered);
+    }
+});
+</script>
+</th:block>
+</body>
+</html>

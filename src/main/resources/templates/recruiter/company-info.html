@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+    layout:decorate="~{layout/main-layout}">
+
+<head>
+    <title>Thông tin công ty - J2PP</title>
+</head>
+
+<body>
+    <div layout:fragment="content" class="py-4">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2 class="section-title mb-0">
+                        <i class="fas fa-building text-primary me-2"></i>Quản lý thông tin công ty
+                    </h2>
+                </div>
+
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body p-4 p-md-5">
+                        <form id="companyForm">
+                            <!-- ID ẩn của công ty -->
+                            <input type="hidden" id="companyId" th:value="${company != null ? company.id : ''}">
+
+                            <div class="row g-4 mb-4">
+                                <div class="col-md-4 text-center">
+                                    <div class="mb-3">
+                                        <img th:src="${company != null and company.logoUrl != null ? company.logoUrl : 'https://via.placeholder.com/150?text=Logo'}"
+                                            class="img-thumbnail rounded-3 mb-3" id="company-logo-preview"
+                                            style="width: 150px; height: 150px; object-fit: contain; background: #f8f9fa;">
+                                    </div>
+                                    <div class="d-grid gap-2">
+                                        <button type="button" class="btn btn-outline-primary btn-sm"
+                                            onclick="document.getElementById('logo-upload').click()">
+                                            <i class="fas fa-upload me-2"></i>Tải logo mới
+                                        </button>
+                                        <input type="file" id="logo-upload" class="hidden" accept="image/*">
+                                        <input type="hidden" id="logoUrl"
+                                            th:value="${company != null ? company.logoUrl : ''}">
+                                    </div>
+                                </div>
+                                <div class="col-md-8">
+                                    <div class="mb-3">
+                                        <label class="form-label fw-semibold">
+                                            <i class="fas fa-building me-2 text-primary"></i>Tên công ty
+                                        </label>
+                                        <input type="text" id="companyName" class="form-control"
+                                            th:value="${company != null ? company.name : ''}"
+                                            placeholder="Nhập tên công ty" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label fw-semibold">
+                                            <i class="fas fa-globe me-2 text-primary"></i>Website
+                                        </label>
+                                        <input type="url" id="companyWebsite" class="form-control"
+                                            th:value="${company != null ? company.website : ''}"
+                                            placeholder="https://example.com">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <hr class="my-4">
+
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">
+                                        <i class="fas fa-users me-2 text-primary"></i>Quy mô công ty
+                                    </label>
+                                    <select id="companySize" class="form-select">
+                                        <option value="">Chọn quy mô</option>
+                                        <option value="1-10"
+                                            th:selected="${company != null and company.companySize == '1-10'}">1-10 nhân viên</option>
+                                        <option value="11-50"
+                                            th:selected="${company != null and company.companySize == '11-50'}">11-50 nhân viên</option>
+                                        <option value="51-200"
+                                            th:selected="${company != null and company.companySize == '51-200'}">51-200 nhân viên</option>
+                                        <option value="201-500"
+                                            th:selected="${company != null and company.companySize == '201-500'}">201-500 nhân viên</option>
+                                        <option value="500+"
+                                            th:selected="${company != null and company.companySize == '500+'}">500+ nhân viên</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">
+                                        <i class="fas fa-tags me-2 text-primary"></i>Ngành nghề
+                                    </label>
+                                    <input type="text" id="companyIndustry" class="form-control"
+                                        th:value="${company != null ? company.industry : ''}"
+                                        placeholder="VD: Công nghệ thông tin, Tài chính,...">
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label fw-semibold">
+                                        <i class="fas fa-align-left me-2 text-primary"></i>Mô tả công ty
+                                    </label>
+                                    <textarea id="companyDescription" class="form-control" rows="5"
+                                        th:text="${company != null ? company.description : ''}"
+                                        placeholder="Giới thiệu về tầm nhìn, sứ mệnh, văn hóa công ty..."
+                                        required></textarea>
+                                </div>
+                            </div>
+
+                            <hr class="my-4">
+
+                            <div class="d-flex justify-content-end gap-2">
+                                <button type="button" class="btn btn-secondary px-4"
+                                    onclick="location.reload()">
+                                    <i class="fas fa-times me-2"></i>Hủy
+                                </button>
+                                <button type="submit" class="btn btn-primary px-4">
+                                    <i class="fas fa-save me-2"></i>Lưu thay đổi
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <th:block layout:fragment="scripts">
+        <script th:src="@{/js/application.js}"></script>
+        <script>
+            // Xử lý xem trước Logo khi chọn file
+            document.getElementById('logo-upload')?.addEventListener('change', function (e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function (event) {
+                        document.getElementById('company-logo-preview').src = event.target.result;
+                        document.getElementById('logoUrl').value = event.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        </script>
+    </th:block>
+</body>
+
+</html>

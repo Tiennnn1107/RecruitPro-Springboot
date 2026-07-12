@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/main-layout}">
+<head>
+    <title>Danh sách ứng tuyển</title>
+</head>
+<body>
+<div layout:fragment="content" class="py-5">
+    <div class="mb-4">
+        <a th:href="@{/recruiter/jobs}" class="text-decoration-none text-muted small"><i class="fas fa-arrow-left me-1"></i> Quay lại danh sách tin</a>
+        <h2 class="fw-bold mt-2" th:text="${job != null ? 'Ứng viên cho: ' + job.title : 'Danh sách ứng viên'}">Ứng viên tuyển dụng</h2>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4">Họ và tên</th>
+                            <th>Ngày nộp</th>
+                            <th>Tin nhắn/Thư</th>
+                            <th>Trạng thái</th>
+                            <th class="text-center pe-4">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <th:block th:if="${applications != null and !applications.empty}">
+                            <tr th:each="app : ${applications}">
+                                <td class="ps-4">
+                                    <div class="d-flex align-items-center">
+                                        <img src="https://ui-avatars.com/api/?name=Candidate&size=40" class="rounded-circle me-3" style="width: 40px;">
+                                        <div>
+                                            <h6 class="mb-0 fw-bold" th:text="${app.candidateName}">Nguyễn Văn B</h6>
+                                            <small class="text-muted" th:text="${app.candidateEmail}">candidate@email.com</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td th:text="${app.appliedAt != null ? #temporals.format(app.appliedAt, 'dd/MM/yyyy') : ''}">22/03/2026</td>
+                                <td class="text-truncate" style="max-width: 150px;" th:title="${app.coverLetter}" th:text="${app.coverLetter != null and !app.coverLetter.empty ? app.coverLetter : 'Không có'}">...</td>
+                                <td>
+                                    <select class="form-select form-select-sm border-0 bg-light" 
+                                            th:onchange="'updateApplicationStatus(' + ${app.id} + ', this.value)'">
+                                        <option value="APPLIED" th:selected="${app.status.name() == 'APPLIED'}">Đã ứng tuyển</option>
+                                        <option value="SHORTLISTED" th:selected="${app.status.name() == 'SHORTLISTED'}">Lọc hồ sơ</option>
+                                        <option value="INTERVIEWING" th:selected="${app.status.name() == 'INTERVIEWING'}">Phỏng vấn</option>
+                                        <option value="OFFERED" th:selected="${app.status.name() == 'OFFERED'}">Đề nghị nhận việc</option>
+                                        <option value="REJECTED" th:selected="${app.status.name() == 'REJECTED'}">Từ chối</option>
+                                    </select>
+                                </td>
+                                <td class="text-center pe-4">
+                                    <div class="btn-group">
+                                        <a th:href="${app.resumeUrl != null ? app.resumeUrl : '#'}" th:classappend="${app.resumeUrl == null ? 'disabled' : ''}" class="btn btn-sm btn-outline-primary" target="_blank" title="Xem CV"><i class="fas fa-file-pdf"></i></a>
+                                        <button class="btn btn-sm btn-outline-info" title="Lên lịch phỏng vấn"><i class="fas fa-calendar-plus"></i></button>
+                                        <button class="btn btn-sm btn-outline-secondary" title="Chi tiết"><i class="fas fa-info-circle"></i></button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </th:block>
+                        
+                        <!-- Empty state -->
+                        <th:block th:if="${applications == null or applications.empty}">
+                            <tr>
+                                <td colspan="5" class="text-center py-5">
+                                    <p class="text-muted">Chưa có ứng viên nào ứng tuyển cho vị trí này.</p>
+                                </td>
+                            </tr>
+                        </th:block>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<th:block layout:fragment="scripts">
+    <script th:src="@{/js/application.js}"></script>
+</th:block>
+</body>
+</html>

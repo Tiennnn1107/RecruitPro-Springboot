@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/main-layout}">
+<head>
+    <title th:text="${blog != null ? blog.title + ' - RecruitBox' : 'Blog không tìm thấy'}">Blog - RecruitBox</title>
+</head>
+<body>
+<div layout:fragment="content" class="py-5" style="background-color: var(--bg-primary);">
+    <div class="container">
+        <!-- Not Found -->
+        <div th:if="${blog == null}" class="text-center py-5">
+            <h2 class="text-danger mb-3"><i class="fas fa-exclamation-triangle me-2"></i>Bài viết không tồn tại</h2>
+            <p class="text-muted mb-4">Xin lỗi, bài viết bạn đang tìm kiếm không tồn tại hoặc đã bị xóa.</p>
+            <a th:href="@{/blogs}" class="btn btn-primary px-4"><i class="fas fa-arrow-left me-2"></i>Quay lại danh sách</a>
+        </div>
+
+        <!-- Blog Detail -->
+        <div th:if="${blog != null}" class="row justify-content-center">
+            <div class="col-lg-8">
+                <!-- Breadcrumbs -->
+                <nav aria-label="breadcrumb" class="mb-4">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a th:href="@{/}" class="text-decoration-none">Trang chủ</a></li>
+                        <li class="breadcrumb-item"><a th:href="@{/blogs}" class="text-decoration-none">Cẩm nang</a></li>
+                        <li class="breadcrumb-item active" aria-current="page" th:text="${blog.title}" style="max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"></li>
+                    </ol>
+                </nav>
+
+                <article class="bg-white rounded-4 shadow-sm p-4 p-md-5">
+                    <h1 class="fw-bold mb-4" style="color: var(--text-primary); line-height: 1.4;" th:text="${blog.title}"></h1>
+                    
+                    <!-- Meta info -->
+                    <div class="d-flex align-items-center justify-content-between border-bottom pb-4 mb-4">
+                        <div class="d-flex align-items-center">
+                            <div class="avatar-circle me-3" style="width: 48px; height: 48px; font-size: 1.2rem; background: var(--accent-coral); color: white;">
+                                <span th:text="${#strings.substring(blog.authorName, 0, 1).toUpperCase()}"></span>
+                            </div>
+                            <div>
+                                <div class="fw-bold text-dark mb-1" th:text="${blog.authorName}"></div>
+                                <div class="text-muted small">
+                                    <i class="fas fa-calendar-alt me-1"></i> <span th:text="${#temporals.format(blog.createdAt, 'dd/MM/yyyy HH:mm')}"></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <button class="btn btn-outline-primary btn-sm rounded-pill px-3"><i class="fas fa-share me-2"></i>Chia sẻ</button>
+                        </div>
+                    </div>
+
+                    <!-- Cover Image -->
+                    <div th:if="${blog.imageUrl != null and !blog.imageUrl.isEmpty()}" class="mb-5 rounded-4 overflow-hidden shadow-sm">
+                        <img th:src="${blog.imageUrl}" alt="Cover Image" class="img-fluid w-100 object-fit-cover" style="max-height: 450px;">
+                    </div>
+
+                    <!-- Summary / Teaser -->
+                    <div th:if="${blog.summary != null and !blog.summary.isEmpty()}" class="p-4 mb-4 rounded-3" style="background-color: var(--bg-tertiary); border-left: 4px solid var(--accent-coral);">
+                        <strong class="text-dark d-block mb-1">Tóm tắt:</strong>
+                        <span class="fst-italic text-secondary" th:text="${blog.summary}"></span>
+                    </div>
+
+                    <!-- Content (Rendered as HTML if needed, but since it's textarea we use text or utext) -->
+                    <!-- We use utext to allow basic HTML styling if Admin uses rich text editor later -->
+                    <div class="blog-content text-break" style="line-height: 1.8; font-size: 1.05rem; color: var(--text-secondary);" th:utext="${#strings.replace(blog.content, '&#10;', '&lt;br&gt;')}">
+                    </div>
+                </article>
+                
+                <div class="mt-4 text-center">
+                    <a th:href="@{/blogs}" class="btn btn-light shadow-sm"><i class="fas fa-arrow-left me-2"></i>Xem các bài viết khác</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

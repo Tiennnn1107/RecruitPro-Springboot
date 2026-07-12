@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/main-layout}">
+<head>
+    <title th:text="${job != null ? 'Chỉnh sửa tin tuyển dụng' : 'Đăng tin tuyển dụng mới'}">Đăng tin tuyển dụng</title>
+</head>
+<body>
+<div layout:fragment="content" class="py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <h2 class="fw-bold mb-4" th:text="${job != null ? 'Chỉnh sửa tin đăng' : 'Đăng tin tuyển dụng mới'}">Tạo tin tuyển dụng</h2>
+            
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-5">
+                    <form id="jobPostingForm">
+                        <!-- ID ẩn nếu là trường hợp sửa -->
+                        <input type="hidden" id="jobId" th:value="${job != null ? job.id : ''}">
+                        
+                        <div class="row mb-4">
+                            <div class="col-md-8">
+                                <label class="form-label fw-bold">Tiêu đề công việc</label>
+                                <input type="text" id="title" class="form-control form-control-lg" th:value="${job != null ? job.title : ''}" placeholder="Vd: Senior Java Backend Developer" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">Hình thức làm việc</label>
+                                <select id="jobType" class="form-select form-select-lg">
+                                    <option value="FULL_TIME" th:selected="${job != null and job.jobType == 'FULL_TIME'}">Toàn thời gian</option>
+                                    <option value="PART_TIME" th:selected="${job != null and job.jobType == 'PART_TIME'}">Bán thời gian</option>
+                                    <option value="REMOTE" th:selected="${job != null and job.jobType == 'REMOTE'}">Từ xa (Remote)</option>
+                                    <option value="FREELANCE" th:selected="${job != null and job.jobType == 'FREELANCE'}">Tự do (Freelance)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Địa điểm</label>
+                                <input type="text" id="location" class="form-control" th:value="${job != null ? job.location : ''}" placeholder="Vd: Quận 1, TP. HCM" required>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold">Lương tối thiểu</label>
+                                <input type="number" id="salaryMin" class="form-control" th:value="${job != null ? job.salaryMin : ''}" placeholder="Vd: 20">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold">Lương tối đa</label>
+                                <input type="number" id="salaryMax" class="form-control" th:value="${job != null ? job.salaryMax : ''}" placeholder="Vd: 35">
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Mô tả công việc</label>
+                            <textarea id="description" class="form-control" rows="8" placeholder="Nội dung mô tả công việc..." th:text="${job != null ? job.description : ''}" required></textarea>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Yêu cầu ứng viên</label>
+                            <textarea id="requirements" class="form-control" rows="8" placeholder="Các kỹ năng, kinh nghiệm cần thiết..." th:text="${job != null ? job.requirements : ''}"></textarea>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Kỹ năng (Ngăn cách bởi dấu phẩy)</label>
+                            <input type="text" id="skills" class="form-control" th:value="${job != null and job.requiredSkills != null ? #strings.listJoin(job.requiredSkills, ', ') : ''}" placeholder="Java, Spring Boot, MySQL">
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2 mt-5">
+                            <a th:href="@{/recruiter/jobs}" class="btn btn-light px-4">Hủy bỏ</a>
+                            <button type="submit" class="btn btn-primary px-5">Lưu tin đăng</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<th:block layout:fragment="scripts">
+    <script th:src="@{/js/application.js}"></script>
+</th:block>
+</body>
+</html>

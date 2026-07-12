@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/main-layout}">
+<head>
+    <title th:text="${job != null ? job.title : 'Chi tiết công việc'}">Chi tiết công việc</title>
+</head>
+<body>
+<div layout:fragment="content" class="py-4">
+    <div class="row g-4" th:if="${job != null}">
+        <!-- Main Content -->
+        <div class="col-lg-8">
+            <!-- Job Header Card -->
+            <div class="card border-0 shadow-lg mb-4 overflow-hidden">
+                <div class="card-header py-4" style="background: var(--gradient-hero);">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h1 class="fw-bold h2 mb-2" style="color: white;" th:text="${job.title}">Senior Java Developer</h1>
+                            <div class="d-flex flex-wrap gap-3 mt-3">
+                                <span class="badge px-3 py-2" style="background: rgba(255,255,255,0.2); color: white;">
+                                    <i class="fas fa-building me-1"></i> <span th:text="${job.companyName}">Google Vietnam</span>
+                                </span>
+                                <span class="badge px-3 py-2" style="background: rgba(255,255,255,0.2); color: white;">
+                                    <i class="fas fa-map-marker-alt me-1"></i> <span th:text="${job.location}">TP. Hồ Chí Minh</span>
+                                </span>
+                            </div>
+                        </div>
+                        <span class="badge px-3 py-2 fs-6" th:classappend="${job.jobType == 'Toàn thời gian' ? 'badge-fulltime' : (job.jobType == 'Bán thời gian' ? 'badge-parttime' : (job.jobType == 'Remote' ? 'badge-remote' : 'badge-intern'))}" th:text="${job.jobType}">Toàn thời gian</span>
+                    </div>
+                </div>
+                <div class="card-body p-4">
+                    <!-- Quick Info -->
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <div class="d-flex align-items-center p-3 rounded-3" style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%); border: 1px solid rgba(99, 102, 241, 0.1);">
+                                <div class="summary-icon">
+                                    <i class="fas fa-money-bill-wave"></i>
+                                </div>
+                                <div>
+                                    <small class="text-muted d-block">Mức lương</small>
+                                    <span class="fw-bold" th:text="${job.salaryRange}">Thỏa thuận</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="d-flex align-items-center p-3 rounded-3" style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%); border: 1px solid rgba(99, 102, 241, 0.1);">
+                                <div class="summary-icon">
+                                    <i class="fas fa-calendar-alt"></i>
+                                </div>
+                                <div>
+                                    <small class="text-muted d-block">Ngày đăng</small>
+                                    <span class="fw-bold" th:text="${job.createdAt != null ? #temporals.format(job.createdAt, 'dd/MM/yyyy') : 'N/A'}">20/03/2026</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="d-flex align-items-center p-3 rounded-3" style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%); border: 1px solid rgba(99, 102, 241, 0.1);">
+                                <div class="summary-icon">
+                                    <i class="fas fa-clock"></i>
+                                </div>
+                                <div>
+                                    <small class="text-muted d-block">Cập nhật</small>
+                                    <span class="fw-bold" th:text="${job.updatedAt != null ? #temporals.format(job.updatedAt, 'dd/MM/yyyy') : 'N/A'}">25/03/2026</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <!-- Job Description -->
+                    <div class="mb-5">
+                        <h4 class="fw-bold mb-3">
+                            <i class="fas fa-align-left me-2" style="color: var(--primary-color);"></i>Mô tả công việc
+                        </h4>
+                        <div class="job-description text-muted ps-4 border-start border-4" style="border-color: var(--primary-color) !important;" th:utext="${job.description}">
+                        </div>
+                    </div>
+
+                    <!-- Requirements -->
+                    <div class="mb-5">
+                        <h4 class="fw-bold mb-3">
+                            <i class="fas fa-clipboard-list me-2" style="color: var(--primary-color);"></i>Yêu cầu ứng viên
+                        </h4>
+                        <div class="job-requirements text-muted ps-4 border-start border-4" style="border-color: var(--warning-color) !important;" th:utext="${job.requirements}">
+                        </div>
+                    </div>
+
+                    <!-- Skills -->
+                    <div class="mb-0">
+                        <h4 class="fw-bold mb-3">
+                            <i class="fas fa-tools me-2" style="color: var(--primary-color);"></i>Kỹ năng yêu cầu
+                        </h4>
+                        <div class="d-flex flex-wrap gap-2">
+                            <th:block th:each="skill : ${job.requiredSkills}">
+                                <span class="skill-badge" th:text="${skill}">Java</span>
+                            </th:block>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Back Button -->
+            <a th:href="@{/}" class="btn btn-outline-primary">
+                <i class="fas fa-arrow-left me-2"></i>Quay lại trang chủ
+            </a>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Apply Card -->
+            <div class="card border-0 shadow-lg mb-4 sticky-top" style="top: 100px; backdrop-filter: blur(20px);">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-4">
+                        <i class="fas fa-paper-plane me-2" style="color: var(--primary-color);"></i>Ứng tuyển ngay
+                    </h5>
+
+                    <div class="mb-4 p-3 rounded-3" style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(139, 92, 246, 0.08) 100%); border: 1px solid rgba(99, 102, 241, 0.1);">
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="fas fa-building me-2" style="color: var(--primary-color);"></i>
+                            <span class="fw-semibold" th:text="${job.companyName}">Google Vietnam</span>
+                        </div>
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="fas fa-map-marker-alt me-2" style="color: var(--primary-color);"></i>
+                            <span th:text="${job.location}">TP. Hồ Chí Minh</span>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-money-bill-wave me-2" style="color: var(--primary-color);"></i>
+                            <span th:text="${job.salaryRange}">Thỏa thuận</span>
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2" id="apply-section">
+                        <button class="btn btn-primary btn-lg btn-apply-job" id="btn-apply-job"
+                                th:attr="data-job-id=${job.id}">
+                            <i class="fas fa-paper-plane me-2"></i>Ứng tuyển ngay
+                        </button>
+                        <a th:href="@{/messages/{id}(id=${job.recruiterUserId})}" class="btn btn-outline-primary btn-lg" id="btn-message-recruiter">
+                            <i class="fas fa-comments me-2"></i>Nhắn tin nhà tuyển dụng
+                        </a>
+                    </div>
+
+                    <div class="text-center mt-3">
+                        <small class="text-muted">
+                            <i class="fas fa-shield-alt me-1"></i>
+                            Thông tin của bạn được bảo mật
+                        </small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Company Card -->
+            <div class="card border-0 shadow-lg">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-3">
+                        <i class="fas fa-building me-2" style="color: var(--primary-color);"></i>Thông tin công ty
+                    </h5>
+
+                    <div class="text-center mb-4">
+                        <div class="company-logo d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                            <span th:text="${#strings.substring(job.companyName, 0, 1)}">G</span>
+                        </div>
+                        <h5 class="fw-bold mb-1" th:text="${job.companyName}">Google Vietnam</h5>
+                        <p class="text-muted small mb-0">Công ty công nghệ hàng đầu</p>
+                    </div>
+
+                    <div class="d-grid">
+                        <a th:href="@{/companies/{id}(id=${job.companyId})}" class="btn btn-outline-primary">
+                            <i class="fas fa-external-link-alt me-2"></i>Xem trang công ty
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<!-- Error state -->
+<div class="py-5 text-center" th:if="${job == null}">
+    <div class="py-5">
+        <i class="fas fa-search fa-4x text-muted mb-4"></i>
+        <h2 class="text-muted mb-3">Không tìm thấy thông tin công việc</h2>
+        <p class="text-muted mb-4">Công việc này có thể đã hết hạn hoặc không tồn tại.</p>
+        <a th:href="@{/}" class="btn btn-primary">
+            <i class="fas fa-home me-2"></i>Quay lại trang chủ
+        </a>
+    </div>
+</div>
+</div>
+
+<th:block layout:fragment="scripts">
+    <script th:src="@{/js/application.js}"></script>
+</th:block>
+</body>
+</html>

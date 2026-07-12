@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/main-layout}">
+<head>
+    <title>Đăng ký - RecruitBox</title>
+    <link th:href="@{/css/auth.css}" rel="stylesheet">
+</head>
+<body>
+<div layout:fragment="content">
+    <div class="auth-page">
+        <div class="auth-container animate-fade-in-up">
+            <!-- Left Side - Branding -->
+            <div class="auth-branding">
+                <div class="auth-branding-content">
+                    <div class="brand-logo">
+                        <span class="brand-icon-lg"><i class="fas fa-briefcase"></i></span>
+                        <span class="brand-text-lg">RecruitBox</span>
+                    </div>
+                    <h1>Bắt đầu hành trình sự nghiệp mới</h1>
+                    <p>Đăng ký ngay để khám phá hàng nghìn cơ hội việc làm và kết nối với nhà tuyển dụng hàng đầu.</p>
+
+                    <div class="auth-stats">
+                        <div class="auth-stat">
+                            <span class="stat-number">10K+</span>
+                            <span class="stat-label">Việc làm</span>
+                        </div>
+                        <div class="auth-stat">
+                            <span class="stat-number">5K+</span>
+                            <span class="stat-label">Công ty</span>
+                        </div>
+                        <div class="auth-stat">
+                            <span class="stat-number">1M+</span>
+                            <span class="stat-label">Ứng viên</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="auth-branding-decoration">
+                    <div class="decoration-circle circle-1"></div>
+                    <div class="decoration-circle circle-2"></div>
+                    <div class="decoration-circle circle-3"></div>
+                </div>
+            </div>
+
+            <!-- Right Side - Form -->
+            <div class="auth-form-container">
+                <div class="auth-card">
+                    <div class="auth-header">
+                        <h2>Tạo tài khoản mới</h2>
+                        <p>Gia nhập RecruitBox để bắt đầu hành trình sự nghiệp của bạn</p>
+                    </div>
+
+                    <form id="registerForm" class="auth-form">
+                        <div id="registerAlert" class="alert alert-danger hidden" role="alert">
+                            <i class="fas fa-exclamation-circle me-2"></i>
+                            <span id="registerAlertMessage"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="username" class="form-label">Họ và tên</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-user"></i></span>
+                                <input type="text" class="form-control" id="username" required placeholder="Nguyễn Văn A" autocomplete="name">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="email" class="form-label">Email</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                                <input type="email" class="form-control" id="email" required placeholder="name@example.com" autocomplete="email">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="password" class="form-label">Mật khẩu</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                                <input type="password" class="form-control" id="password" required placeholder="Tối thiểu 6 ký tự" autocomplete="new-password">
+                                <span class="input-group-text password-toggle" onclick="togglePassword()">
+                                    <i class="fas fa-eye" id="passwordToggleIcon"></i>
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Bạn là ai?</label>
+                            <div class="role-selection">
+                                <label class="role-card">
+                                    <input type="radio" name="role" value="CANDIDATE" checked onchange="toggleRecruiterForm()">
+                                    <div class="card">
+                                        <i class="fas fa-user-graduate"></i>
+                                        <h6>Ứng viên</h6>
+                                        <small>Tìm việc làm</small>
+                                    </div>
+                                </label>
+                                <label class="role-card">
+                                    <input type="radio" name="role" value="RECRUITER" onchange="toggleRecruiterForm()">
+                                    <div class="card">
+                                        <i class="fas fa-building"></i>
+                                        <h6>Nhà tuyển dụng</h6>
+                                        <small>Đăng tin tuyển</small>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Recruiter Company Info Form -->
+                        <div id="recruiterFormSection" class="hidden">
+                            <hr class="my-4">
+                            <h5 class="mb-3"><i class="fas fa-building me-2"></i>Thông tin công ty (Minh chứng)</h5>
+                            <p class="text-muted small mb-3">Vui lòng cung cấp thông tin công ty để quản trị viên phê duyệt.</p>
+                            
+                            <div class="form-group">
+                                <label for="companyName" class="form-label">Tên công ty <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-building"></i></span>
+                                    <input type="text" class="form-control" id="companyName" placeholder="Công ty ABC">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="taxCode" class="form-label">Mã số thuế</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-file-invoice"></i></span>
+                                    <input type="text" class="form-control" id="taxCode" placeholder="0123456789">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="companyAddress" class="form-label">Địa chỉ công ty</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-map-marker-alt"></i></span>
+                                    <input type="text" class="form-control" id="companyAddress" placeholder="123 Nguyễn Huệ, Quận 1, TP.HCM">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="companyPhone" class="form-label">Số điện thoại công ty</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-phone"></i></span>
+                                    <input type="text" class="form-control" id="companyPhone" placeholder="0901234567">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="companyWebsite" class="form-label">Website công ty</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-globe"></i></span>
+                                    <input type="text" class="form-control" id="companyWebsite" placeholder="https://congtyabc.com">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="businessLicenseUrl" class="form-label">Link Giấy phép kinh doanh</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-certificate"></i></span>
+                                    <input type="text" class="form-control" id="businessLicenseUrl" placeholder="Link Google Drive hoặc URL">
+                                </div>
+                            </div>
+
+                            <hr class="my-4">
+                            <h5 class="mb-3"><i class="fas fa-user-tie me-2"></i>Thông tin người đại diện</h5>
+
+                            <div class="form-group">
+                                <label for="contactPersonName" class="form-label">Người đại diện</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-user"></i></span>
+                                    <input type="text" class="form-control" id="contactPersonName" placeholder="Nguyễn Văn B">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="contactPersonPosition" class="form-label">Chức vụ</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-briefcase"></i></span>
+                                    <input type="text" class="form-control" id="contactPersonPosition" placeholder="Giám đốc">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="contactPersonPhone" class="form-label">Số điện thoại liên hệ</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-phone-alt"></i></span>
+                                    <input type="text" class="form-control" id="contactPersonPhone" placeholder="0901234567">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" id="agreeTerms" required>
+                                <label class="form-check-label" for="agreeTerms">
+                                    Tôi đồng ý với <a href="#">Điều khoản</a> và <a href="#">Chính sách bảo mật</a>
+                                </label>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-submit w-100" id="registerBtn">
+                            <span id="registerBtnText"><i class="fas fa-user-plus me-2"></i>Tạo tài khoản</span>
+                            <span id="registerBtnLoading" class="hidden">
+                                <span class="spinner-border spinner-border-sm me-2"></span>
+                                Đang xử lý...
+                            </span>
+                        </button>
+                    </form>
+
+                    <div class="auth-footer">
+                        <p>Đã có tài khoản? <a th:href="@{/login}">Đăng nhập ngay</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<th:block layout:fragment="scripts">
+    <script th:src="@{/js/auth.js}"></script>
+    <script>
+        function togglePassword() {
+            const passwordInput = document.getElementById('password');
+            const icon = document.getElementById('passwordToggleIcon');
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                passwordInput.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        }
+
+        function toggleRecruiterForm() {
+            const role = document.querySelector('input[name="role"]:checked').value;
+            const recruiterSection = document.getElementById('recruiterFormSection');
+            
+            if (role === 'RECRUITER') {
+                recruiterSection.classList.remove('hidden');
+            } else {
+                recruiterSection.classList.add('hidden');
+            }
+        }
+    </script>
+</th:block>
+</body>
+</html>

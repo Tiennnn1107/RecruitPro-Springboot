@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+    layout:decorate="~{layout/main-layout}">
+
+<head>
+    <title>Quy trình tuyển dụng</title>
+    <link th:href="@{/css/dashboard.css}" rel="stylesheet">
+    <style>
+        /* Tùy chỉnh thanh cuộn cho đẹp mắt */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        /* Vùng chứa Kanban Board */
+        .pipeline-container {
+            display: flex;
+            gap: 1.25rem;
+            overflow-x: auto;
+            padding-bottom: 1rem;
+            align-items: flex-start;
+            /* Giúp các cột không bị kéo giãn bằng nhau nếu ít item */
+        }
+
+        /* Cột Kanban */
+        .pipeline-column {
+            min-width: 320px;
+            /* Chiều rộng tối thiểu để thẻ không bị bóp méo */
+            width: 320px;
+            flex-shrink: 0;
+        }
+
+        .pipeline-column>.card {
+            background-color: #f4f5f7;
+            /* Nền xám nhạt kiểu Trello */
+            border-radius: 0.5rem;
+            max-height: calc(100vh - 260px);
+            /* Chiều cao động theo màn hình */
+            display: flex;
+            flex-direction: column;
+        }
+
+        .pipeline-column .card-body {
+            overflow-y: auto;
+            padding: 0.75rem;
+            flex-grow: 1;
+        }
+
+        /* Thẻ ứng viên */
+        .app-card {
+            cursor: grab;
+            transition: all 0.2s ease;
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            border-left: 4px solid transparent;
+            border-radius: 0.5rem;
+            background: #ffffff;
+        }
+
+        .app-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+            border-right-color: transparent;
+            border-top-color: transparent;
+            border-bottom-color: transparent;
+        }
+
+        .app-card:active {
+            cursor: grabbing;
+        }
+
+        .app-card.dragging {
+            opacity: 0.6;
+            transform: scale(0.98);
+        }
+
+        /* Màu trạng thái cạnh trái */
+        .column-pending {
+            border-left-color: #ffc107;
+        }
+
+        .column-reviewing {
+            border-left-color: #0dcaf0;
+        }
+
+        .column-interviewing {
+            border-left-color: #0d6efd;
+        }
+
+        .column-final {
+            border-left-color: #198754;
+        }
+
+        .column-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            border-top-left-radius: 0.5rem !important;
+            border-top-right-radius: 0.5rem !important;
+        }
+
+        .column-count {
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .drag-over {
+            background-color: rgba(13, 110, 253, 0.08) !important;
+            border: 2px dashed #0d6efd;
+        }
+
+        /* Cụm nút thao tác nhanh */
+        .quick-actions {
+            opacity: 0;
+            transition: opacity 0.2s;
+            display: flex;
+            gap: 0.25rem;
+        }
+
+        .app-card:hover .quick-actions {
+            opacity: 1;
+        }
+
+        .interview-badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            z-index: 10;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .filter-section {
+            background: #ffffff;
+            padding: 1.25rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            border: 1px solid #edf2f7;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: #adb5bd;
+        }
+
+        .empty-state i {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            opacity: 0.7;
+        }
+
+        .empty-state p {
+            font-weight: 500;
+        }
+
+        @media (max-width: 768px) {
+            .pipeline-column {
+                min-width: 280px;
+                width: 280px;
+            }
+
+            .quick-actions {
+                opacity: 1;
+            }
+        }
+
+        /* ===== QUICK VIEW SIDEBAR ===== */
+        .quick-view-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.3);
+            z-index: 1040;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .quick-view-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .quick-view-panel {
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: 420px;
+            max-width: 90vw;
+            height: 100vh;
+            background: #fff;
+            z-index: 1050;
+            transform: translateX(100%);
+            transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+            box-shadow: -4px 0 24px rgba(0, 0, 0, 0.12);
+        }
+        
+        .quick-view-panel.active {
+            transform: translateX(0);
+        }
+        
+        .qv-header {
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .qv-header h5 {
+            margin: 0;
+            font-weight: 600;
+        }
+        
+        .qv-close {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .qv-close:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        
+        .qv-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1.5rem;
+        }
+        
+        .qv-candidate-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 2rem;
+            font-weight: 600;
+            margin: 0 auto 1rem;
+        }
+        
+        .qv-candidate-avatar img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        
+        .qv-section {
+            margin-bottom: 1.5rem;
+        }
+        
+        .qv-section-title {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            color: #64748b;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            letter-spacing: 0.5px;
+        }
+        
+        .qv-info-row {
+            display: flex;
+            align-items: center;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        
+        .qv-info-row i {
+            width: 24px;
+            color: #64748b;
+            margin-right: 0.75rem;
+        }
+        
+        .qv-skill-badge {
+            display: inline-block;
+            padding: 0.35rem 0.75rem;
+            background: #f1f5f9;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            margin: 0.25rem;
+            color: #475569;
+        }
+        
+        .qv-exp-item {
+            padding: 0.75rem;
+            background: #f8fafc;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+        }
+        
+        .qv-exp-item .position {
+            font-weight: 600;
+            color: #1e293b;
+        }
+        
+        .qv-exp-item .company {
+            color: #64748b;
+            font-size: 0.875rem;
+        }
+        
+        .qv-exp-item .dates {
+            font-size: 0.75rem;
+            color: #94a3b8;
+        }
+        
+        .qv-cover-letter {
+            background: #f8fafc;
+            padding: 1rem;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            line-height: 1.6;
+            color: #475569;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+        
+        .qv-action-buttons {
+            padding: 1rem 1.5rem;
+            border-top: 1px solid #e2e8f0;
+            display: flex;
+            gap: 0.75rem;
+            background: #f8fafc;
+        }
+        
+        .qv-action-buttons .btn {
+            flex: 1;
+        }
+
+        .qv-loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 200px;
+        }
+
+        .qv-resume-link {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.5rem 1rem;
+            background: #e0e7ff;
+            color: #4338ca;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .qv-resume-link:hover {
+            background: #c7d2fe;
+            color: #4338ca;
+        }
+    </style>
+</head>
+
+<body class="d-flex flex-column bg-light">
+    <div layout:fragment="content" class="container-fluid py-4 flex-grow-1">
+
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+            <h2 class="fw-bold mb-0 text-dark"><i class="fas fa-tasks me-2 text-primary"></i>Hành trình ứng viên</h2>
+            <div class="btn-group shadow-sm">
+                <button class="btn btn-primary active"><i class="fas fa-columns me-1"></i>Pipeline</button>
+            </div>
+        </div>
+
+        <div class="filter-section">
+            <div class="row g-3">
+                <div class="col-md-5">
+                    <label class="form-label fw-semibold text-secondary small text-uppercase">Tin tuyển dụng</label>
+                    <select id="jobFilter" class="form-select" onchange="filterPipeline()">
+                        <option value="">-- Tất cả tin tuyển dụng --</option>
+                        <option th:each="job : ${myJobs}" th:value="${job.id}" th:text="${job.title}"></option>
+                    </select>
+                </div>
+                <div class="col-md-5">
+                    <label class="form-label fw-semibold text-secondary small text-uppercase">Tìm kiếm</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-end-0"><i
+                                class="fas fa-search text-muted"></i></span>
+                        <input type="text" id="searchInput" class="form-control border-start-0 ps-0"
+                            placeholder="Tên, email ứng viên..." onkeyup="debounceSearch()">
+                        <button class="btn btn-primary px-3" type="button" onclick="filterPipeline()">Lọc</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="pipelineContainer" class="pipeline-container">
+
+            <div class="pipeline-column">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-warning text-dark border-0 column-header">
+                        <span class="fw-bold"><i class="fas fa-inbox me-2 opacity-75"></i>Mới ứng tuyển</span>
+                        <span class="badge bg-white text-dark shadow-sm column-count"
+                            th:text="${counts != null ? counts.pending : '0'}">0</span>
+                    </div>
+                    <div class="card-body" id="column-pending" ondrop="handleDrop(event)"
+                        ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
+                        <div th:each="app : ${pendingApps}" class="app-card column-pending mb-3"
+                            th:attr="data-id=${app.id}, data-status=${app.status}" draggable="true"
+                            ondragstart="handleDragStart(event)" ondragend="handleDragEnd(event)">
+                            <div class="p-3 position-relative">
+                                <div th:if="${app.hasInterview}" class="interview-badge">
+                                    <span class="badge bg-primary rounded-circle p-2" title="Đã lên lịch phỏng vấn"><i
+                                            class="fas fa-calendar-check"></i></span>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-start mb-1">
+                                    <h6 class="fw-bold text-dark text-truncate mb-0" th:text="${app.candidateName}">Nguyễn
+                                        Văn A</h6>
+                                    <span class="badge bg-warning text-dark rounded-pill small ms-2 flex-shrink-0">Mới</span>
+                                </div>
+                                <p class="small text-secondary mb-2 text-truncate" th:text="${app.jobTitle}">Java
+                                    Developer</p>
+
+                                <div class="d-flex align-items-center small text-muted mb-3 text-truncate">
+                                    <i class="fas fa-envelope me-2 opacity-50"></i>
+                                    <span class="text-truncate" th:text="${app.candidateEmail}">email@email.com</span>
+                                </div>
+
+                                <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top">
+                                    <span class="small fw-medium text-muted">
+                                        <i class="fas fa-clock me-1"></i>
+                                        <span th:if="${app.daysSinceApplied == 0}">Hôm nay</span>
+                                        <span th:if="${app.daysSinceApplied > 0}" th:text="${app.daysSinceApplied + ' ngày'}">0 ngày</span>
+                                    </span>
+                                    <div class="quick-actions">
+                                        <button class="btn btn-sm btn-light text-primary border" title="Xem nhanh" th:onclick="|event.stopPropagation(); openQuickView(${app.id}); return false;|"><i class="fas fa-expand"></i></button>
+                                        <button th:if="${!app.hasInterview}" class="btn btn-sm btn-light text-success border" th:onclick="|event.stopPropagation(); scheduleInterviewQuick(${app.id}); return false;|" title="Lên lịch phỏng vấn"><i class="fas fa-calendar-plus"></i></button>
+                                        <button class="btn btn-sm btn-light text-danger border" th:onclick="|event.stopPropagation(); rejectApplication(${app.id}); return false;|" title="Từ chối"><i class="fas fa-times"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div th:if="${#lists.isEmpty(pendingApps)}" class="empty-state">
+                            <i class="fas fa-inbox-in text-warning"></i>
+                            <p class="mb-0">Chưa có hồ sơ mới</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pipeline-column">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-info text-white border-0 column-header">
+                        <span class="fw-bold"><i class="fas fa-user-check me-2 opacity-75"></i>Đang xem xét</span>
+                        <span class="badge bg-white text-info shadow-sm column-count"
+                            th:text="${counts != null ? counts.reviewing : '0'}">0</span>
+                    </div>
+                    <div class="card-body" id="column-reviewing" ondrop="handleDrop(event)"
+                        ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
+                        <div th:each="app : ${reviewingApps}" class="app-card column-reviewing mb-3"
+                            th:attr="data-id=${app.id}, data-status=${app.status}" draggable="true"
+                            ondragstart="handleDragStart(event)" ondragend="handleDragEnd(event)">
+                            <div class="p-3 position-relative">
+                                <div th:if="${app.hasInterview}" class="interview-badge">
+                                    <span class="badge bg-primary rounded-circle p-2" title="Đã lên lịch phỏng vấn"><i
+                                            class="fas fa-calendar-check"></i></span>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-start mb-1">
+                                    <h6 class="fw-bold text-dark text-truncate mb-0" th:text="${app.candidateName}">Nguyễn
+                                        Văn A</h6>
+                                    <span class="badge bg-info text-white rounded-pill small ms-2 flex-shrink-0">Xem xét</span>
+                                </div>
+                                <p class="small text-secondary mb-2 text-truncate" th:text="${app.jobTitle}">Java
+                                    Developer</p>
+
+                                <div class="d-flex align-items-center small text-muted mb-3 text-truncate">
+                                    <i class="fas fa-envelope me-2 opacity-50"></i>
+                                    <span class="text-truncate" th:text="${app.candidateEmail}">email@email.com</span>
+                                </div>
+
+                                <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top">
+                                    <span class="small fw-medium text-info"><i class="fas fa-eye me-1"></i>Đã xem</span>
+                                    <div class="quick-actions">
+                                        <button class="btn btn-sm btn-light text-primary border" title="Xem nhanh" th:onclick="|event.stopPropagation(); openQuickView(${app.id}); return false;|"><i class="fas fa-expand"></i></button>
+                                        <button th:if="${!app.hasInterview}" class="btn btn-sm btn-light text-success border" th:onclick="|event.stopPropagation(); scheduleInterviewQuick(${app.id}); return false;|" title="Lên lịch phỏng vấn"><i class="fas fa-calendar-plus"></i></button>
+                                        <button class="btn btn-sm btn-light text-danger border" th:onclick="|event.stopPropagation(); rejectApplication(${app.id}); return false;|" title="Từ chối"><i class="fas fa-times"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div th:if="${#lists.isEmpty(reviewingApps)}" class="empty-state">
+                            <i class="fas fa-clipboard-list text-info"></i>
+                            <p class="mb-0">Trống</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pipeline-column">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-primary text-white border-0 column-header">
+                        <span class="fw-bold"><i class="fas fa-comments me-2 opacity-75"></i>Phỏng vấn</span>
+                        <span class="badge bg-white text-primary shadow-sm column-count"
+                            th:text="${counts != null ? counts.interviewing : '0'}">0</span>
+                    </div>
+                    <div class="card-body" id="column-interviewing" ondrop="handleDrop(event)"
+                        ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
+                        <div th:each="app : ${interviewingApps}" class="app-card column-interviewing mb-3"
+                            th:attr="data-id=${app.id}, data-status=${app.status}" draggable="true"
+                            ondragstart="handleDragStart(event)" ondragend="handleDragEnd(event)">
+                            <div class="p-3 position-relative">
+                                <div th:if="${app.hasInterview}" class="interview-badge">
+                                    <span class="badge bg-success rounded-circle p-2" title="Đã lên lịch phỏng vấn"><i
+                                            class="fas fa-calendar-check"></i></span>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-start mb-1">
+                                    <h6 class="fw-bold text-dark text-truncate mb-0" th:text="${app.candidateName}">Nguyễn
+                                        Văn A</h6>
+                                    <span class="badge bg-primary rounded-pill small ms-2 flex-shrink-0">Phỏng vấn</span>
+                                </div>
+                                <p class="small text-secondary mb-2 text-truncate" th:text="${app.jobTitle}">Java
+                                    Developer</p>
+
+                                <div class="d-flex align-items-center small text-muted mb-3 text-truncate">
+                                    <i class="fas fa-envelope me-2 opacity-50"></i>
+                                    <span class="text-truncate" th:text="${app.candidateEmail}">email@email.com</span>
+                                </div>
+
+                                <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top">
+                                    <span class="small fw-medium text-primary"><i
+                                            class="fas fa-calendar-alt me-1"></i>Vòng phỏng vấn</span>
+                                    <div class="quick-actions">
+                                        <button class="btn btn-sm btn-light text-primary border" title="Xem nhanh" th:onclick="|event.stopPropagation(); openQuickView(${app.id}); return false;|"><i class="fas fa-expand"></i></button>
+                                        <button class="btn btn-sm btn-light text-success border" th:onclick="|event.stopPropagation(); markAsOffered(${app.id}); return false;|" title="Chốt Offer"><i class="fas fa-check-double"></i></button>
+                                        <button class="btn btn-sm btn-light text-danger border" th:onclick="|event.stopPropagation(); rejectApplication(${app.id}); return false;|" title="Từ chối"><i class="fas fa-times"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div th:if="${#lists.isEmpty(interviewingApps)}" class="empty-state">
+                            <i class="fas fa-users text-primary"></i>
+                            <p class="mb-0">Chưa có lịch hẹn</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pipeline-column">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-success text-white border-0 column-header">
+                        <span class="fw-bold"><i class="fas fa-flag-checkered me-2 opacity-75"></i>Kết quả</span>
+                        <span class="badge bg-white text-success shadow-sm column-count"
+                            th:text="${counts != null ? counts.final : '0'}">0</span>
+                    </div>
+                    <div class="card-body" id="column-final" ondrop="handleDrop(event)"
+                        ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
+                        <div th:each="app : ${finalApps}" class="app-card column-final mb-3"
+                            th:attr="data-id=${app.id}, data-status=${app.status}" draggable="true"
+                            ondragstart="handleDragStart(event)" ondragend="handleDragEnd(event)">
+                            <div class="p-3 position-relative">
+                                <div class="d-flex justify-content-between align-items-start mb-1">
+                                    <h6 class="fw-bold text-dark text-truncate mb-0" th:text="${app.candidateName}">Nguyễn
+                                        Văn A</h6>
+                                    <span th:if="${app.status == 'OFFERED'}" class="badge bg-success rounded-pill small ms-2 flex-shrink-0">Đã Tuyển</span>
+                                    <span th:if="${app.status == 'REJECTED'}" class="badge bg-danger rounded-pill small ms-2 flex-shrink-0">Từ Chối</span>
+                                </div>
+                                <p class="small text-secondary mb-2 text-truncate" th:text="${app.jobTitle}">Java
+                                    Developer</p>
+
+                                <div class="d-flex align-items-center small text-muted mb-3 text-truncate">
+                                    <i class="fas fa-envelope me-2 opacity-50"></i>
+                                    <span class="text-truncate" th:text="${app.candidateEmail}">email@email.com</span>
+                                </div>
+
+                                <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top">
+                                    <span class="small fw-medium text-muted">
+                                        <i class="fas fa-clock me-1"></i>
+                                        <span th:if="${app.daysSinceApplied == 0}">Hôm nay</span>
+                                        <span th:if="${app.daysSinceApplied > 0}" th:text="${app.daysSinceApplied + ' ngày'}">0 ngày</span>
+                                    </span>
+                                    <div class="quick-actions">
+                                        <button class="btn btn-sm btn-light text-primary border" title="Xem nhanh" th:onclick="|event.stopPropagation(); openQuickView(${app.id}); return false;|"><i class="fas fa-expand"></i></button>
+                                        <button th:if="${app.status != 'OFFERED'}" class="btn btn-sm btn-light text-success border" th:onclick="|event.stopPropagation(); markAsOffered(${app.id}); return false;|" title="Chốt Offer"><i class="fas fa-check-double"></i></button>
+                                        <button th:if="${app.status != 'REJECTED'}" class="btn btn-sm btn-light text-danger border" th:onclick="|event.stopPropagation(); rejectApplication(${app.id}); return false;|" title="Từ chối"><i class="fas fa-times"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div th:if="${#lists.isEmpty(finalApps)}" class="empty-state">
+                            <i class="fas fa-trophy text-success"></i>
+                            <p class="mb-0">Chưa có kết quả</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Quick View Sidebar Overlay -->
+        <div class="quick-view-overlay" id="qvOverlay" onclick="closeQuickView()"></div>
+        
+        <!-- Quick View Sidebar Panel -->
+        <div class="quick-view-panel" id="qvPanel">
+            <div class="qv-header">
+                <h5><i class="fas fa-user-circle me-2"></i>Chi tiết ứng viên</h5>
+                <div class="d-flex gap-2">
+                    <a id="qvDetailLink" href="#" class="btn btn-sm btn-light text-primary" title="Xem trang chi tiết đầy đủ"><i class="fas fa-external-link-alt"></i></a>
+                    <button class="qv-close m-0" onclick="closeQuickView()"><i class="fas fa-times"></i></button>
+                </div>
+            </div>
+            <div class="qv-body" id="qvBody">
+                <div class="qv-loading">
+                    <div class="spinner-border text-primary" role="status"></div>
+                </div>
+            </div>
+            <div class="qv-action-buttons" id="qvActions">
+                <button onclick="scheduleInterviewFromQV()" class="btn btn-success flex-grow-1"><i class="fas fa-calendar-plus me-2"></i>Lên lịch</button>
+                <button onclick="rejectFromQV()" class="btn btn-outline-danger"><i class="fas fa-times me-2"></i>Từ chối</button>
+            </div>
+        </div>
+
+        <!-- Schedule Interview Modal -->
+        <div class="modal fade" id="scheduleInterviewModal" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content border-0 shadow">
+                    <div class="modal-header bg-light border-bottom-0">
+                        <h5 class="modal-title fw-bold text-primary"><i class="fas fa-calendar-plus me-2"></i>Lên lịch phỏng vấn</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <form id="scheduleInterviewForm" onsubmit="submitScheduleInterview(event)">
+                        <div class="modal-body">
+                            <input type="hidden" id="interviewApplicationId">
+                            <div class="mb-3">
+                                <label class="form-label fw-medium text-secondary">Thời gian phỏng vấn</label>
+                                <input type="datetime-local" id="interviewDateTime" class="form-control" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-medium text-secondary">Hình thức</label>
+                                <select id="interviewType" class="form-select" required>
+                                    <option value="ONSITE">Trực tiếp tại văn phòng</option>
+                                    <option value="ONLINE">Online (Google Meet/Zoom)</option>
+                                    <option value="PHONE">Gọi điện thoại</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-medium text-secondary">Địa điểm / Link tham gia</label>
+                                <input type="text" id="interviewLocation" class="form-control"
+                                    placeholder="Nhập địa chỉ hoặc dán link cuộc họp...">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-medium text-secondary">Ghi chú cho ứng viên</label>
+                                <textarea id="interviewNote" class="form-control" rows="3"
+                                    placeholder="Nhắc nhở ứng viên mang theo CV, chuẩn bị bài test..."></textarea>
+                            </div>
+                        </div>
+                        <div class="modal-footer bg-light border-top-0">
+                            <button type="button" class="btn btn-light border" data-bs-dismiss="modal">Đóng</button>
+                            <button type="submit" class="btn btn-primary px-4"><i class="fas fa-save me-2"></i>Xác nhận lịch</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <th:block layout:fragment="scripts">
+        <script th:src="@{/js/pipeline.js}"></script>
+    </th:block>
+</body>
+
+</html>

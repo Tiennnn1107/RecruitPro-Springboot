@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+    layout:decorate="~{layout/main-layout}">
+
+<head>
+    <title>Hồ sơ cá nhân - J2PP</title>
+</head>
+
+<body>
+    <div layout:fragment="content" class="py-4">
+        <!-- Profile Not Found Banner -->
+        <div th:if="${profile == null}" class="container">
+            <div class="card border-0 shadow-sm text-center py-5">
+                <div class="card-body">
+                    <div class="mb-4">
+                        <div class="bg-warning bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 100px; height: 100px;">
+                            <i class="fas fa-user-circle fa-4x text-warning"></i>
+                        </div>
+                    </div>
+                    <h3 class="fw-bold mb-3">Bạn chưa có hồ sơ ứng viên</h3>
+                    <p class="text-muted mb-4">Tạo hồ sơ để ứng tuyển vào các công việc phù hợp với bạn</p>
+                    <button class="btn btn-primary btn-lg" data-bs-toggle="modal" data-bs-target="#createProfileModal">
+                        <i class="fas fa-plus me-2"></i>Tạo hồ sơ ngay
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4" th:if="${profile != null}">
+            <!-- Left Sidebar - Profile Card -->
+            <div class="col-lg-4">
+                <!-- Profile Card -->
+                <div class="card border-0 shadow-sm mb-4 overflow-hidden">
+                    <div class="card-header bg-primary text-white text-center py-4">
+                        <div class="position-relative d-inline-block">
+                            <img th:src="${profile != null and profile.avatarUrl != null ? profile.avatarUrl : 'https://ui-avatars.com/api/?name=User&size=128&background=4f46e5&color=fff'}"
+                                class="rounded-circle img-thumbnail border-4 border-white"
+                                style="width: 140px; height: 140px; object-fit: cover;">
+                            <button class="btn btn-light btn-sm rounded-circle position-absolute bottom-0 end-0" 
+                                    onclick="document.getElementById('avatar-upload').click()"
+                                    title="Đổi ảnh đại diện">
+                                <i class="fas fa-camera"></i>
+                            </button>
+                            <input type="file" id="avatar-upload" class="hidden" accept="image/*">
+                        </div>
+                    </div>
+                    <div class="card-body text-center py-4">
+                        <h4 class="fw-bold mb-1" id="profile-name-display"
+                            th:text="${profile != null ? profile.fullName : 'Họ và tên'}">Nguyễn Văn A</h4>
+                        <p class="text-muted mb-3" id="profile-headline-display"
+                            th:text="${profile != null ? profile.headline : 'Tiêu đề nghề nghiệp'}">Java Backend Developer</p>
+                        
+                        <div class="d-flex justify-content-center gap-2 mb-3">
+                            <span class="badge bg-success px-3 py-2">
+                                <i class="fas fa-check-circle me-1"></i>Hồ sơ đã hoàn thiện
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contact Info Card -->
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-white py-3">
+                        <h5 class="fw-bold mb-0">
+                            <i class="fas fa-address-card text-primary me-2"></i>Thông tin liên hệ
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-unstyled mb-0">
+                            <li class="d-flex align-items-center py-3 border-bottom">
+                                <div class="summary-icon me-3">
+                                    <i class="fas fa-envelope"></i>
+                                </div>
+                                <div>
+                                    <small class="text-muted d-block">Email</small>
+                                    <span th:text="${profile != null ? profile.email : userEmail}">email@example.com</span>
+                                </div>
+                            </li>
+                            <li class="d-flex align-items-center py-3 border-bottom">
+                                <div class="summary-icon me-3">
+                                    <i class="fas fa-phone"></i>
+                                </div>
+                                <div>
+                                    <small class="text-muted d-block">Số điện thoại</small>
+                                    <span th:text="${profile != null and profile.phone != null ? profile.phone : 'Chưa cập nhật'}">0123 456 789</span>
+                                </div>
+                            </li>
+                            <li class="d-flex align-items-center py-3">
+                                <div class="summary-icon me-3">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                </div>
+                                <div>
+                                    <small class="text-muted d-block">Địa chỉ</small>
+                                    <span th:text="${profile != null and profile.address != null ? profile.address : 'Chưa cập nhật'}">TP. Hồ Chí Minh</span>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Content -->
+            <div class="col-lg-8">
+                <!-- About Section -->
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                        <h5 class="fw-bold mb-0">
+                            <i class="fas fa-user text-primary me-2"></i>Giới thiệu bản thân
+                        </h5>
+                        <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal"
+                            data-bs-target="#editProfileModal">
+                            <i class="fas fa-edit me-1"></i>Chỉnh sửa
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <p class="mb-0 text-muted" id="profile-summary-display"
+                            th:text="${profile != null and profile.summary != null ? profile.summary : 'Chưa có thông tin giới thiệu. Hãy cập nhật để nhà tuyển dụng hiểu thêm về bạn.'}">
+                            Tôi là một lập trình viên nhiệt huyết...</p>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-body py-4">
+                        <h5 class="fw-bold mb-3">
+                            <i class="fas fa-bolt text-primary me-2"></i>Thao tác nhanh
+                        </h5>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <a th:href="@{/}" class="btn btn-outline-primary w-100 py-3">
+                                    <i class="fas fa-search me-2"></i>Tìm việc làm
+                                </a>
+                            </div>
+                            <div class="col-md-6">
+                                <a th:href="@{/candidate/applications}" class="btn btn-outline-success w-100 py-3">
+                                    <i class="fas fa-file-alt me-2"></i>Xem đơn ứng tuyển
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CV/Resume Section -->
+                <div class="card border-0 shadow-sm mb-4" th:if="${profile != null and profile.resumeUrl != null}">
+                    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                        <h5 class="fw-bold mb-0">
+                            <i class="fas fa-file-pdf text-danger me-2"></i>CV của tôi
+                        </h5>
+                        <div>
+                            <a th:href="${profile.resumeUrl}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-external-link-alt me-1"></i>Mở CV
+                            </a>
+                            <a th:href="${profile.resumeUrl}" download class="btn btn-sm btn-success">
+                                <i class="fas fa-download me-1"></i>Tải xuống
+                            </a>
+                        </div>
+                    </div>
+                    <div class="card-body p-2">
+                        <iframe th:src="${profile.resumeUrl}" 
+                                style="width: 100%; height: 600px; border: 1px solid #ddd; border-radius: 8px;"
+                                class="embed-responsive-item"></iframe>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Edit Profile Modal -->
+        <div class="modal fade" id="editProfileModal" tabindex="-1">
+            <div class="modal-dialog modal-lg modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header bg-primary text-white">
+                        <h5 class="modal-title">
+                            <i class="fas fa-user-edit me-2"></i>Chỉnh sửa hồ sơ cá nhân
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <form id="candidateProfileForm">
+                        <div class="modal-body p-4">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">Họ và tên</label>
+                                    <input type="text" id="edit-fullName" class="form-control"
+                                        th:value="${profile != null ? profile.fullName : ''}" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">Tiêu đề (Headline)</label>
+                                    <input type="text" id="edit-headline" class="form-control"
+                                        th:value="${profile != null ? profile.headline : ''}"
+                                        placeholder="Vd: Java Backend Developer">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">Số điện thoại</label>
+                                    <input type="text" id="edit-phone" class="form-control"
+                                        th:value="${profile != null ? profile.phone : ''}"
+                                        placeholder="0123 456 789">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">Địa chỉ</label>
+                                    <input type="text" id="edit-address" class="form-control"
+                                        th:value="${profile != null ? profile.address : ''}"
+                                        placeholder="TP. Hồ Chí Minh">
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label fw-semibold">Giới thiệu bản thân</label>
+                                    <textarea id="edit-summary" class="form-control" rows="4"
+                                        th:text="${profile != null ? profile.summary : ''}"
+                                        placeholder="Viết vài dòng giới thiệu về bản thân, kỹ năng, mục tiêu nghề nghiệp..."></textarea>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label fw-semibold">Tải lên CV (PDF)</label>
+                                    <input type="file" id="edit-cv-file" class="form-control" accept=".pdf">
+                                    <small class="text-muted">Chấp nhận file PDF có kích thước tối đa 5MB</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer bg-light">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy bỏ</button>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>Lưu thay đổi
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Create Profile Modal (shown when profile == null) -->
+        <div class="modal fade" id="createProfileModal" tabindex="-1" th:if="${profile == null}">
+            <div class="modal-dialog modal-lg modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header bg-primary text-white">
+                        <h5 class="modal-title">
+                            <i class="fas fa-user-plus me-2"></i>Tạo hồ sơ ứng viên
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <form id="createProfileForm">
+                        <div class="modal-body p-4">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">Họ và tên <span class="text-danger">*</span></label>
+                                    <input type="text" id="create-fullName" class="form-control" required
+                                        placeholder="Nguyễn Văn A">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">Tiêu đề (Headline)</label>
+                                    <input type="text" id="create-headline" class="form-control"
+                                        placeholder="Vd: Java Backend Developer">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">Số điện thoại</label>
+                                    <input type="text" id="create-phone" class="form-control"
+                                        placeholder="0123 456 789">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">Địa chỉ</label>
+                                    <input type="text" id="create-address" class="form-control"
+                                        placeholder="TP. Hồ Chí Minh">
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label fw-semibold">Giới thiệu bản thân</label>
+                                    <textarea id="create-summary" class="form-control" rows="4"
+                                        placeholder="Viết vài dòng giới thiệu về bản thân, kỹ năng, mục tiêu nghề nghiệp..."></textarea>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label fw-semibold">Tải lên CV (PDF)</label>
+                                    <input type="file" id="create-cv-file" class="form-control" accept=".pdf">
+                                    <small class="text-muted">Chấp nhận file PDF có kích thước tối đa 5MB</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer bg-light">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy bỏ</button>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-plus me-2"></i>Tạo hồ sơ
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <th:block layout:fragment="scripts">
+        <script th:src="@{/js/application.js}"></script>
+    </th:block>
+</body>
+</html>
