@@ -1,6 +1,7 @@
 package duanspringboot.config;
 
 import duanspringboot.entity.User;
+import duanspringboot.entity.CandidateProfile;
 import duanspringboot.enums.Role;
 import duanspringboot.repository.UserRepository;
 import duanspringboot.util.JwtUtil;
@@ -14,12 +15,14 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
@@ -27,7 +30,8 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
 
     private final UserRepository userRepository;
     private final JwtUtil jwtUtil;
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final PasswordEncoder passwordEncoder;
+    private final ObjectMapper objectMapper;
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
@@ -52,10 +56,16 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
         } else {
             user = User.builder()
                     .email(email)
-                    .password("")
+                    .password(passwordEncoder.encode(UUID.randomUUID().toString()))
                     .role(Role.CANDIDATE)
                     .isActive(true)
                     .build();
+            CandidateProfile profile = CandidateProfile.builder()
+                    .user(user)
+                    .fullName(name != null ? name : email.substring(0, email.indexOf('@')))
+                    .avatarUrl(oauth2User.getAttribute("picture"))
+                    .build();
+            user.setCandidateProfile(profile);
             user = userRepository.save(user);
         }
 

@@ -15,6 +15,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
@@ -32,6 +33,8 @@ public class SecurityConfig {
 
     private final JwtFilter jwtFilter;
     private final AuthenticationProvider authenticationProvider;
+    private final OAuth2SuccessHandler oauth2SuccessHandler;
+    private final org.springframework.beans.factory.ObjectProvider<ClientRegistrationRepository> clientRegistrations;
 
     @Value("${app.cors.allowed-origins:http://localhost:8080,http://localhost:3000,http://127.0.0.1:8080,http://127.0.0.1:3000,http://recruit-alb-1002681411.ap-southeast-1.elb.amazonaws.com,https://d32lxiso1iao8j.cloudfront.net}")
     private String allowedOrigins;
@@ -55,7 +58,7 @@ public class SecurityConfig {
 
                         // Cho phép truy cập View HTML
                         .requestMatchers("/", "/login", "/register", "/forgot-password", "/reset-password", "/jobs/**", "/notifications",
-                                "/css/**", "/js/**", "/images/**", "/assets/**")
+                                "/css/**", "/js/**", "/images/**", "/assets/**", "/oauth2/**", "/login/oauth2/**")
                         .permitAll()
 
                         // API public
@@ -92,9 +95,15 @@ public class SecurityConfig {
                                 response.sendRedirect("/login");
                             }
                         }))
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
                 .authenticationProvider(authenticationProvider)
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+
+        if (clientRegistrations.getIfAvailable() != null) {
+            http.oauth2Login(oauth -> oauth
+                    .successHandler(oauth2SuccessHandler)
+                    .failureUrl("/login?oauth2Error=true"));
+        }
 
         return http.build();
     }

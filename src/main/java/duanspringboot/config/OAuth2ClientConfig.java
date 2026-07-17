@@ -25,8 +25,12 @@ public class OAuth2ClientConfig {
     @Value("${spring.security.oauth2.client.registration.google.client-secret:}")
     private String googleClientSecret;
 
+    @Value("${app.base-url:}")
+    private String appBaseUrl;
+
     @Bean
-    @ConditionalOnExpression("'${GOOGLE_CLIENT_ID:}' != '' and '${GOOGLE_CLIENT_SECRET:}' != ''")
+    @ConditionalOnExpression("'${spring.security.oauth2.client.registration.google.client-id:}' != '' and "
+            + "'${spring.security.oauth2.client.registration.google.client-secret:}' != ''")
     public ClientRegistrationRepository clientRegistrationRepository() {
         List<ClientRegistration> registrations = new ArrayList<>();
 
@@ -39,12 +43,16 @@ public class OAuth2ClientConfig {
     }
 
     private ClientRegistration googleClientRegistration() {
+        String redirectUri = appBaseUrl != null && !appBaseUrl.trim().isBlank()
+                ? appBaseUrl.trim().replaceAll("/+$", "") + "/login/oauth2/code/{registrationId}"
+                : "{baseUrl}/login/oauth2/code/{registrationId}";
+
         return ClientRegistration.withRegistrationId("google")
                 .clientId(googleClientId)
                 .clientSecret(googleClientSecret)
                 .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
                 .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
-                .redirectUri("{baseUrl}/login/oauth2/code/{registrationId}")
+                .redirectUri(redirectUri)
                 .scope(Arrays.asList("profile", "email"))
                 .authorizationUri("https://accounts.google.com/o/oauth2/v2/auth")
                 .tokenUri("https://oauth2.googleapis.com/token")

@@ -106,9 +106,10 @@ public class JobPostingController {
             @RequestParam(required = false) String location,
             @RequestParam(required = false) Integer minSalary,
             @RequestParam(required = false) String title,
+            @RequestParam(required = false) Long fieldId,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size) {
-        return ResponseEntity.ok(jobPostingService.searchJobsPaginated(location, minSalary, title, page, size));
+        return ResponseEntity.ok(jobPostingService.searchJobsPaginated(location, minSalary, title, fieldId, page, size));
     }
 
     // 9. Lấy tin tuyển dụng của chính mình với phân trang (Recruiter)

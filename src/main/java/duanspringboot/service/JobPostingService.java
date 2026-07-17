@@ -192,10 +192,11 @@ public class JobPostingService {
     }
 
     // 8. Tìm kiếm với phân trang
-    public Map<String, Object> searchJobsPaginated(String location, Integer minSalary, String title, int page, int size) {
+    public Map<String, Object> searchJobsPaginated(
+            String location, Integer minSalary, String title, Long fieldId, int page, int size) {
         Pageable pageable = PageRequest.of(page - 1, size, Sort.by("createdAt").descending());
         Page<JobPosting> jobPage = jobPostingRepository.filterJobsPaginated(
-                JobStatus.OPEN, location, minSalary, title, null, pageable);
+                JobStatus.OPEN, location, minSalary, title, fieldId, pageable);
         
         List<JobPostingResponse> jobs = jobPage.getContent().stream()
                 .map(this::mapToResponse)
