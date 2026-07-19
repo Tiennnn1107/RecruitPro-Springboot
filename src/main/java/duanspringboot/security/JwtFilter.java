@@ -60,10 +60,10 @@ public class JwtFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
             return;
         }
-        userEmail = jwtUtil.extractEmail(jwt);
+        try {
+            userEmail = jwtUtil.extractEmail(jwt);
 
-        if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            try {
+            if (userEmail != null) {
                 UserDetails userDetails = this.userDetailsService.loadUserByUsername(userEmail);
                 if (jwtUtil.validateToken(jwt, userDetails.getUsername())) {
                     UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
@@ -74,9 +74,10 @@ public class JwtFilter extends OncePerRequestFilter {
                     authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authToken);
                 }
-            } catch (Exception e) {
-                // User not found or token invalid - continue as anonymous
             }
+        } catch (Exception e) {
+            // Token hết hạn/không hợp lệ hoặc user không còn tồn tại: không xác thực bằng JWT.
+            SecurityContextHolder.clearContext();
         }
         filterChain.doFilter(request, response);
     }
