@@ -121,30 +121,51 @@ EXIT;
 
 **3. Cấu hình Environment Variables**
 
-Tạo file `.env` trong thư mục gốc của project (hoặc export trực tiếp):
+Ứng dụng đọc cấu hình từ biến môi trường. Spring Boot không tự động nạp file `.env`, vì vậy hãy khai báo biến trong terminal hoặc cấu hình chúng trên máy chủ triển khai.
+
+Linux/macOS:
 
 ```bash
-# Database Password
+export DB_URL=jdbc:mysql://localhost:3306/recruitment_db?useSSL=false\&serverTimezone=UTC\&allowPublicKeyRetrieval=true
+export DB_USERNAME=root
 export DB_PASSWORD=your_mysql_password
-
-# JWT Secret (chuỗi bảo mật ngẫu nhiên cho JWT)
 export JWT_SECRET=your_jwt_secret_key_min_32_chars
-
-# Google OAuth2 Credentials (tùy chọn - để đăng nhập bằng Google)
 export GOOGLE_CLIENT_ID=your_google_client_id
 export GOOGLE_CLIENT_SECRET=your_google_client_secret
 ```
 
+Windows PowerShell:
+
+```powershell
+$env:DB_URL="jdbc:mysql://localhost:3306/recruitment_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true"
+$env:DB_USERNAME="root"
+$env:DB_PASSWORD="your_mysql_password"
+$env:JWT_SECRET="your_jwt_secret_key_min_32_chars"
+$env:GOOGLE_CLIENT_ID="your_google_client_id"
+$env:GOOGLE_CLIENT_SECRET="your_google_client_secret"
+```
+
+Các biến trên chỉ tồn tại trong cửa sổ terminal hiện tại. Không commit Client Secret, mật khẩu database hoặc JWT secret lên Git.
+
 **4. Chạy Ứng dụng**
 
 ```bash
-# Development mode với Maven
+# Linux/macOS
 ./mvnw spring-boot:run
 
-# Hoặc đóng gói JAR và chạy
 ./mvnw clean package
 java -jar target/j2pp-0.0.1-SNAPSHOT.jar
 ```
+
+```powershell
+# Windows PowerShell
+.\mvnw.cmd spring-boot:run
+
+.\mvnw.cmd clean package
+java -jar target\j2pp-0.0.1-SNAPSHOT.jar
+```
+
+Lệnh `clean package` chạy test và tạo executable JAR tại `target/j2pp-0.0.1-SNAPSHOT.jar`. Khi đưa JAR sang máy khác, các biến môi trường vẫn phải được cấu hình trên máy đó trước khi chạy.
 
 **5. Truy cập Ứng dụng**
 
@@ -156,12 +177,18 @@ Mở trình duyệt và truy cập: http://localhost:8080
 
 | Variable | Description | Required | Default |
 |----------|-------------|----------|---------|
+| `DB_URL` | JDBC URL kết nối MySQL | No | Database `recruitment_db` trên localhost |
+| `DB_USERNAME` | Tài khoản MySQL | No | `root` |
 | `DB_PASSWORD` | Mật khẩu MySQL | Yes | - |
 | `JWT_SECRET` | Secret key cho JWT token (tối thiểu 32 ký tự) | Yes | - |
 | `GOOGLE_CLIENT_ID` | OAuth2 Client ID từ Google Cloud Console | No | - |
 | `GOOGLE_CLIENT_SECRET` | OAuth2 Client Secret từ Google Cloud Console | No | - |
 | `MAIL_USERNAME` | Email SMTP để gửi mail thông báo | No | - |
 | `MAIL_PASSWORD` | App Password của email SMTP | No | - |
+| `APP_BASE_URL` | URL public của ứng dụng, dùng cho OAuth callback | No | Tự nhận diện từ request |
+| `APP_CORS_ALLOWED_ORIGINS` | Danh sách origin được phép, phân cách bằng dấu phẩy | No | Các địa chỉ local/demo đã cấu hình |
+| `AWS_REGION` | Region chứa S3 bucket | No | Theo `application.properties` |
+| `S3_CV_BUCKET` | Tên S3 bucket lưu CV | No | Theo `application.properties` |
 
 ### Cách lấy Google OAuth2 Credentials
 
@@ -172,6 +199,8 @@ Mở trình duyệt và truy cập: http://localhost:8080
 5. Application type: **Web application**
 6. Thêm Authorized redirect URI: `http://localhost:8080/login/oauth2/code/google`
 7. Copy **Client ID** và **Client Secret** vào environment variables
+
+Khi triển khai bằng domain thật, đặt `APP_BASE_URL=https://your-domain.example` và thêm URI `https://your-domain.example/login/oauth2/code/google` vào **Authorized redirect URIs** trên Google Cloud Console.
 
 ---
 
@@ -272,6 +301,14 @@ RecruitBox/
 
 > **Note**: Sample accounts sử dụng đăng nhập bằng mật khẩu. Google Login cần cấu hình OAuth2 credentials.
 
+### Kiểm tra phân quyền
+
+- Candidate truy cập `/candidate/applications` để xem các đơn đã ứng tuyển.
+- Recruiter truy cập `/recruiter/jobs` để xem tin và `/recruiter/jobs/create` để đăng tin mới.
+- Admin truy cập `/admin/dashboard`.
+- HTTP `401` thường có nghĩa là JWT thiếu hoặc hết hạn; hãy đăng nhập lại.
+- HTTP `403` có nghĩa là tài khoản đã đăng nhập nhưng không có role phù hợp với đường dẫn. Khi đổi giữa tài khoản Candidate và Recruiter, hãy đăng xuất rồi đăng nhập lại để cookie và JWT được cập nhật.
+
 ### Demo Screenshots
 
 #### 1. Trang chủ
@@ -302,5 +339,3 @@ RecruitBox/
 Dự án này được phân phối dưới giấy phép **MIT License**. Xem file `LICENSE` để biết thêm chi tiết.
 
 ---
-
-
